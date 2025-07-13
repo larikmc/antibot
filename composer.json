@@ -1,0 +1,30 @@
+{
+  "name": "larikmc/yii2-antibot",
+  "description": "Yii2 Anti-Bot Extension with behavioral analysis and machine learning integration.",
+  "type": "yii2-extension",
+  "keywords": [
+    "yii2",
+    "extension",
+    "antibot",
+    "security",
+    "behavioral analysis"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Larik",
+      "email": "larikmc@mail.ru"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "../vendor/yiisoft/yii2": "~2.0.0",
+    "yiisoft/yii2-httpclient": "~2.0.0",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "larikmc\\antibot\\": ""
+    }
+  }
+}
