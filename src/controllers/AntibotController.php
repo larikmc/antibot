@@ -1,13 +1,13 @@
 <?php
 
-namespace Larikmc\AntiBot\controllers; // Изменено на Larikmc
+namespace Larikmc\Antibot\controllers; // Изменено на Larikmc
 
 use Yii;
 use yii\web\Controller;
 use yii\web\Response;
-use Larikmc\AntiBot\components\AntiBotChecker; // Изменено на Larikmc
+use Larikmc\Antibot\components\AntibotChecker; // Изменено на Larikmc
 
-class AntiBotController extends Controller
+class AntibotController extends Controller
 {
     /**
      * @inheritdoc
@@ -22,7 +22,7 @@ class AntiBotController extends Controller
      */
     public function actionVerify()
     {
-        /** @var AntiBotChecker $checker */
+        /** @var AntibotChecker $checker */
         $checker = $this->module->getChecker();
 
         if ($checker->checkIfHuman()) {
@@ -32,8 +32,8 @@ class AntiBotController extends Controller
         if (Yii::$app->request->isPost && Yii::$app->request->post('not_bot_button')) {
             $checker->markAsHuman();
 
-            $redirectUrl = Yii::$app->session->get('antibot_redirect_url', Yii::$app->homeUrl);
-            Yii::$app->session->remove('antibot_redirect_url');
+            $redirectUrl = Yii::$app->session->get('Antibot_redirect_url', Yii::$app->homeUrl);
+            Yii::$app->session->remove('Antibot_redirect_url');
 
             Yii::$app->response->format = Response::FORMAT_JSON;
             return [

@@ -1,13 +1,13 @@
 <?php
 
-namespace Larikmc\AntiBot\components; // Изменено на Larikmc
+namespace Larikmc\Antibot\components; // Изменено на Larikmc
 
 use Yii;
 use yii\base\Component;
 use yii\web\Cookie;
 // use backend\models\Antibot; // Убедитесь, что модель доступна или переместите ее в common/models
 
-class AntiBotChecker extends Component
+class AntibotChecker extends Component
 {
     public $goodBots = [];
     public $safeRefererDomains = [];
@@ -141,7 +141,7 @@ class AntiBotChecker extends Component
         $model->status = $status;
 
         if (!$model->save()) {
-            Yii::error('Failed to save antibot log: ' . json_encode($model->getErrors()), __METHOD__);
+            Yii::error('Failed to save Antibot log: ' . json_encode($model->getErrors()), __METHOD__);
         }
     }
 }

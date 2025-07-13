@@ -1,21 +1,21 @@
 <?php
 
-namespace Larikmc\AntiBot\behaviors; // Изменено на Larikmc
+namespace Larikmc\Antibot\behaviors; // Изменено на Larikmc
 
 use Yii;
 use yii\base\Behavior;
 use yii\web\Controller;
-use Larikmc\AntiBot\components\AntiBotChecker; // Изменено на Larikmc
+use Larikmc\Antibot\components\AntibotChecker; // Изменено на Larikmc
 
 /**
- * AntiBotBehavior attaches to controllers to perform bot checks.
+ * AntibotBehavior attaches to controllers to perform bot checks.
  */
-class AntiBotBehavior extends Behavior
+class AntibotBehavior extends Behavior
 {
     /**
-     * @var string ID компонента AntiBotChecker, который будет использоваться.
+     * @var string ID компонента AntibotChecker, который будет использоваться.
      */
-    public $checkerComponentId = 'antiBotChecker';
+    public $checkerComponentId = 'AntibotChecker';
 
     /**
      * @var array Список маршрутов (controller-id/action-id), которые нужно исключить из проверки.
@@ -42,15 +42,15 @@ class AntiBotBehavior extends Behavior
         /** @var Controller $controller */
         $controller = $this->owner;
 
-        /** @var AntiBotChecker $checker */
+        /** @var AntibotChecker $checker */
         $checker = Yii::$app->get($this->checkerComponentId);
 
         $currentRoute = $controller->uniqueId;
 
-        $module = Yii::$app->getModule('antibot');
+        $module = Yii::$app->getModule('Antibot');
         if ($module) {
             $moduleRoutes = [
-                $module->id . '/anti-bot/verify',
+                $module->id . '/antibot/verify',
             ];
             $this->excludedRoutes = array_merge($this->excludedRoutes, $moduleRoutes);
         }
@@ -64,9 +64,9 @@ class AntiBotBehavior extends Behavior
         }
 
         if ($checker->checkIsBot()) {
-            Yii::$app->session->set('antibot_redirect_url', Yii::$app->request->url);
+            Yii::$app->session->set('Antibot_redirect_url', Yii::$app->request->url);
 
-            $controller->redirect(['/' . $module->id . '/anti-bot/verify'])->send();
+            $controller->redirect(['/' . $module->id . '/antibot/verify'])->send();
             return $event->isValid = false;
         }
 
