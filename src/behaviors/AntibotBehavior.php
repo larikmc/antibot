@@ -1,11 +1,11 @@
 <?php
 
-namespace Larikmc\Antibot\behaviors;
+namespace larikmc\Antibot\behaviors;
 
 use Yii;
 use yii\base\Behavior;
 use yii\web\Controller;
-use Larikmc\Antibot\components\AntibotChecker;
+use larikmc\Antibot\components\AntibotChecker;
 
 /**
  * AntibotBehavior attaches to controllers to perform bot checks.
@@ -49,8 +49,9 @@ class AntibotBehavior extends Behavior
 
         $module = Yii::$app->getModule('antibot');
         if ($module) {
+            // Маршрут исключения и перенаправления
             $moduleRoutes = [
-                $module->id . '/antibot/verify',
+                $module->id . '/antibot/verify', // Оставлено antibot/verify, если контроллер не по умолчанию
             ];
             $this->excludedRoutes = array_merge($this->excludedRoutes, $moduleRoutes);
         }
@@ -66,7 +67,7 @@ class AntibotBehavior extends Behavior
         if ($checker->checkIsBot()) {
             Yii::$app->session->set('antibot_redirect_url', Yii::$app->request->url);
 
-            $controller->redirect(['/' . $module->id . '/antibot/verify'])->send();
+            $controller->redirect(['/' . $module->id . '/antibot/verify'])->send(); // Оставлено antibot/verify
             return $event->isValid = false;
         }
 

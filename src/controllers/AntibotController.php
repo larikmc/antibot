@@ -1,12 +1,12 @@
 <?php
 
-namespace Larikmc\Antibot\controllers;
+namespace larikmc\Antibot\controllers;
 
 use Yii;
 use yii\helpers\Json;
 use yii\web\Controller;
 use yii\web\Response;
-use Larikmc\Antibot\components\AntibotChecker;
+use larikmc\Antibot\components\AntibotChecker;
 
 class AntibotController extends Controller
 {
@@ -36,7 +36,13 @@ class AntibotController extends Controller
             $redirectUrl = Yii::$app->session->get('antibot_redirect_url', Yii::$app->homeUrl);
             Yii::$app->session->remove('antibot_redirect_url');
 
-            return Json::encode(['redirect_url' => $redirectUrl]);
+            // Вернуто к стандартному способу возврата JSON
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return [
+                'status' => 'success',
+                'message' => 'User verified as human. Redirecting...',
+                'redirect_url' => $redirectUrl,
+            ];
         }
 
         //Рендерим представление с кнопкой "Я не бот"

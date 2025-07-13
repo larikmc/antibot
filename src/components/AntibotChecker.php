@@ -1,6 +1,6 @@
 <?php
 
-namespace Larikmc\Antibot\components;
+namespace larikmc\Antibot\components;
 
 use Yii;
 use yii\base\Component;
