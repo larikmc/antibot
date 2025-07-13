@@ -21,16 +21,5 @@
     "psr-4": {
       "Larikmc\\AntiBot\\": "src/"
     }
-  },
-  "extra": {
-    "yii\\composer\\Installer::postCreateProject": {
-      "yii\\gii\\GiiAsset::register"
-    },
-    "yii\\composer\\Installer::postInstall": {
-      "yii\\gii\\GiiAsset::register"
-    },
-    "yii\\composer\\Installer::postUpdate": {
-      "yii\\gii\\GiiAsset::register"
-    }
   }
 }
