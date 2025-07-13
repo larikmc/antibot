@@ -8,7 +8,7 @@ use yii\web\Controller;
 use yii\web\Response;
 use Larikmc\Antibot\components\AntibotChecker;
 
-class AntiBotController extends Controller
+class AntibotController extends Controller
 {
     /**
      * @inheritdoc

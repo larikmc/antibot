@@ -1,6 +1,6 @@
 {
   "name": "larikmc/yii2-antibot",
-  "description": "Yii2 Anti-Bot Extension with behavioral analysis.",
+  "description": "Yii2 Antibot Extension with behavioral analysis.",
   "type": "yii2-extension",
   "keywords": ["yii2", "extension", "antibot", "security", "behavioral analysis"],
   "license": "MIT",
@@ -19,7 +19,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Larikmc\\AntiBot\\": "src/"
+      "Larikmc\\Antibot\\": "src/"
     }
   }
 }
