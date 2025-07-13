@@ -1,11 +1,11 @@
 <?php
 
-namespace larikmc\AntiBot\controllers; // Новое пространство имен
+namespace Larikmc\AntiBot\controllers; // Изменено на Larikmc
 
 use Yii;
 use yii\web\Controller;
 use yii\web\Response;
-use larikmc\AntiBot\components\AntiBotChecker; // Используем компонент
+use Larikmc\AntiBot\components\AntiBotChecker; // Изменено на Larikmc
 
 class AntiBotController extends Controller
 {
@@ -15,10 +15,6 @@ class AntiBotController extends Controller
     public function init()
     {
         parent::init();
-        // Отключаем CSRF-валидацию для этого контроллера, если вы используете AJAX
-        // или перенаправляете сюда без CSRF-токена в URL.
-        // Но лучше оставлять включенным и передавать токен через JS, как вы делали ранее.
-        // $this->enableCsrfValidation = false;
     }
 
     /**
@@ -27,9 +23,8 @@ class AntiBotController extends Controller
     public function actionVerify()
     {
         /** @var AntiBotChecker $checker */
-        $checker = $this->module->getChecker(); // Получаем компонент через модуль
+        $checker = $this->module->getChecker();
 
-        // Если пользователь уже помечен как "не бот", перенаправляем его на главную
         if ($checker->checkIfHuman()) {
             return $this->goHome();
         }
@@ -50,7 +45,4 @@ class AntiBotController extends Controller
 
         return $this->render('verify');
     }
-
-    // Здесь больше не нужны методы checkIsBot, isGoodBot, saveAntibotLog и т.д.
-    // Они будут в компоненте AntiBotChecker.
 }

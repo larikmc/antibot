@@ -1,30 +1,36 @@
 {
   "name": "larikmc/yii2-antibot",
-  "description": "Yii2 Anti-Bot Extension with behavioral analysis and machine learning integration.",
+  "description": "Yii2 Anti-Bot Extension with behavioral analysis.",
   "type": "yii2-extension",
-  "keywords": [
-    "yii2",
-    "extension",
-    "antibot",
-    "security",
-    "behavioral analysis"
-  ],
+  "keywords": ["yii2", "extension", "antibot", "security", "behavioral analysis"],
   "license": "MIT",
   "authors": [
     {
-      "name": "Larik",
-      "email": "larikmc@mail.ru"
+      "name": "Larikmc",
+      "email": "your.email@example.com"
     }
   ],
   "require": {
     "php": ">=7.4",
-    "../vendor/yiisoft/yii2": "~2.0.0",
+    "yiisoft/yii2": "~2.0.0",
     "yiisoft/yii2-httpclient": "~2.0.0",
-    "ext-json": "*"
+    "ext-json": "*",
+    "ext-curl": "*"
   },
   "autoload": {
     "psr-4": {
-      "larikmc\\antibot\\": ""
+      "Larikmc\\AntiBot\\": "src/"
+    }
+  },
+  "extra": {
+    "yii\\composer\\Installer::postCreateProject": {
+      "yii\\gii\\GiiAsset::register"
+    },
+    "yii\\composer\\Installer::postInstall": {
+      "yii\\gii\\GiiAsset::register"
+    },
+    "yii\\composer\\Installer::postUpdate": {
+      "yii\\gii\\GiiAsset::register"
     }
   }
 }

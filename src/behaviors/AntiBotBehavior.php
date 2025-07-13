@@ -1,11 +1,11 @@
 <?php
 
-namespace larikmc\AntiBot\behaviors; // Новое пространство имен
+namespace Larikmc\AntiBot\behaviors; // Изменено на Larikmc
 
 use Yii;
 use yii\base\Behavior;
 use yii\web\Controller;
-use larikmc\AntiBot\components\AntiBotChecker; // Используем компонент
+use Larikmc\AntiBot\components\AntiBotChecker; // Изменено на Larikmc
 
 /**
  * AntiBotBehavior attaches to controllers to perform bot checks.
@@ -20,10 +20,7 @@ class AntiBotBehavior extends Behavior
     /**
      * @var array Список маршрутов (controller-id/action-id), которые нужно исключить из проверки.
      */
-    public $excludedRoutes = [
-        // Эти будут добавлены автоматически из конфигурации модуля
-        // 'antibot/anti-bot/verify',
-    ];
+    public $excludedRoutes = [];
 
     /**
      * @inheritdoc
@@ -43,16 +40,14 @@ class AntiBotBehavior extends Behavior
     public function checkBot($event)
     {
         /** @var Controller $controller */
-        $controller = $this->owner; // Получаем экземпляр контроллера, к которому прикреплено поведение
+        $controller = $this->owner;
 
         /** @var AntiBotChecker $checker */
-        $checker = Yii::$app->get($this->checkerComponentId); // Получаем компонент AntiBotChecker
+        $checker = Yii::$app->get($this->checkerComponentId);
 
-        // Получаем текущий уникальный маршрут
         $currentRoute = $controller->uniqueId;
 
-        // Добавляем маршруты модуля в исключения, если они не были добавлены явно
-        $module = Yii::$app->getModule('antibot'); // Предполагаем, что модуль называется 'antibot'
+        $module = Yii::$app->getModule('antibot');
         if ($module) {
             $moduleRoutes = [
                 $module->id . '/anti-bot/verify',
@@ -60,27 +55,21 @@ class AntiBotBehavior extends Behavior
             $this->excludedRoutes = array_merge($this->excludedRoutes, $moduleRoutes);
         }
 
-        // Если текущий маршрут находится в списке исключений, пропускаем проверку на бота
         if (in_array($currentRoute, $this->excludedRoutes)) {
-            return $event->isValid = true; // Продолжаем выполнение действия
+            return $event->isValid = true;
         }
 
-        // Если пользователь уже помечен как человек, пропускаем дальнейшую проверку на бота
         if ($checker->checkIfHuman()) {
             return $event->isValid = true;
         }
 
-        // Выполняем основную проверку на бота через компонент
         if ($checker->checkIsBot()) {
-            // Если определено, что это бот, сохраняем текущий URL
             Yii::$app->session->set('antibot_redirect_url', Yii::$app->request->url);
 
-            // Перенаправляем на страницу подтверждения "Я не бот"
-            // Важно: здесь мы используем Controller::redirect, поэтому нужно установить isValid = false
             $controller->redirect(['/' . $module->id . '/anti-bot/verify'])->send();
-            return $event->isValid = false; // Прерываем выполнение действия
+            return $event->isValid = false;
         }
 
-        return $event->isValid = true; // Все проверки пройдены, продолжаем
+        return $event->isValid = true;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace larikmc\AntiBot\components; // Новое пространство имен
+namespace Larikmc\AntiBot\components; // Изменено на Larikmc
 
 use Yii;
 use yii\base\Component;
@@ -13,7 +13,6 @@ class AntiBotChecker extends Component
     public $safeRefererDomains = [];
     public $maxRequests = 30;
     public $timeWindow = 60;
-    public $mlMicroserviceUrl = null; // URL для вашего ML-микросервиса
 
     /**
      * Метод для пометки пользователя как "не-бота" (человека).
@@ -133,7 +132,6 @@ class AntiBotChecker extends Component
         // Лучше всего, если эта модель будет либо в common/models, либо
         // вы создадите интерфейс в расширении, а реализацию (например, с Active Record)
         // оставите в своем приложении.
-        // Для простоты сейчас оставим как есть, но это потенциальная точка зависимости.
         $model = new \backend\models\Antibot(); // Убедитесь в корректном namespace для вашей модели Antibot!
         $model->date = time();
         $model->referer = $referer;

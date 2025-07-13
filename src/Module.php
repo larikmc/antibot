@@ -1,6 +1,6 @@
 <?php
 
-namespace larikmc\AntiBot; // Новое пространство имен
+namespace Larikmc\AntiBot; // Изменено на Larikmc
 
 use Yii;
 
@@ -13,19 +13,13 @@ class Module extends \yii\base\Module
     /**
      * @inheritdoc
      */
-    public $controllerNamespace = 'larikmc\AntiBot\controllers';
+    public $controllerNamespace = 'Larikmc\\AntiBot\\controllers'; // Изменено на Larikmc
 
     /**
      * ID компонента AntiBotChecker
      * @var string
      */
     public $checkerComponentId = 'antiBotChecker';
-
-    /**
-     * URL для микросервиса ML (если используется)
-     * @var string|null
-     */
-    public $mlMicroserviceUrl = null;
 
     /**
      * @inheritdoc
@@ -38,7 +32,7 @@ class Module extends \yii\base\Module
         if (!Yii::$app->has($this->checkerComponentId)) {
             Yii::$app->setComponents([
                 $this->checkerComponentId => [
-                    'class' => 'larikmc\AntiBot\components\AntiBotChecker',
+                    'class' => 'Larikmc\\AntiBot\\components\\AntiBotChecker', // Изменено на Larikmc
                     // Здесь можно передать конфигурацию для компонента
                     'goodBots' => [
                         'YandexImages', 'YandexVideo', 'YandexWebmaster', 'YandexMedia', 'YandexBlogs', 'YandexDirect', 'YandexBot',
@@ -54,7 +48,6 @@ class Module extends \yii\base\Module
                     ],
                     'maxRequests' => 30,
                     'timeWindow' => 60,
-                    'mlMicroserviceUrl' => $this->mlMicroserviceUrl, // Передаем URL микросервиса
                 ],
             ]);
         }
@@ -62,7 +55,7 @@ class Module extends \yii\base\Module
 
     /**
      * Возвращает экземпляр компонента AntiBotChecker
-     * @return \larikmc\AntiBot\components\AntiBotChecker
+     * @return \Larikmc\AntiBot\components\AntiBotChecker // Изменено на Larikmc
      */
     public function getChecker()
     {
