@@ -1,6 +1,6 @@
 <?php
 
-namespace Larikmc\Antibot\components; // Изменено на Larikmc
+namespace Larikmc\Antibot\components;
 
 use Yii;
 use yii\base\Component;
@@ -81,7 +81,7 @@ class AntibotChecker extends Component
         }
 
         // 3. Проверка Referer
-        if (empty($referer)) {
+        if (empty( $referer)) {
             $this->saveAntibotLog($userAgent, 'empty_referer', 'empty_referer');
             return true;
         } else {
@@ -129,9 +129,7 @@ class AntibotChecker extends Component
     protected function saveAntibotLog($agent, $referer, $status)
     {
         // Здесь должна быть ваша модель Antibot.
-        // Лучше всего, если эта модель будет либо в common/models, либо
-        // вы создадите интерфейс в расширении, а реализацию (например, с Active Record)
-        // оставите в своем приложении.
+        // Убедитесь в корректном namespace для вашей модели Antibot!
         $model = new \backend\models\Antibot(); // Убедитесь в корректном namespace для вашей модели Antibot!
         $model->date = time();
         $model->referer = $referer;
@@ -141,7 +139,7 @@ class AntibotChecker extends Component
         $model->status = $status;
 
         if (!$model->save()) {
-            Yii::error('Failed to save Antibot log: ' . json_encode($model->getErrors()), __METHOD__);
+            Yii::error('Failed to save antibot log: ' . json_encode($model->getErrors()), __METHOD__);
         }
     }
 }

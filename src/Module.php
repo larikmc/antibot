@@ -13,13 +13,13 @@ class Module extends \yii\base\Module
     /**
      * @inheritdoc
      */
-    public $controllerNamespace = 'Larikmc\\Antibot\\controllers'; // Изменено на Larikmc
+    public $controllerNamespace = 'Larikmc\\Antibot\\controllers';
 
     /**
      * ID компонента AntibotChecker
      * @var string
      */
-    public $checkerComponentId = 'AntibotChecker';
+    public $checkerComponentId = 'antibotChecker';
 
     /**
      * @inheritdoc
@@ -32,7 +32,7 @@ class Module extends \yii\base\Module
         if (!Yii::$app->has($this->checkerComponentId)) {
             Yii::$app->setComponents([
                 $this->checkerComponentId => [
-                    'class' => 'Larikmc\\Antibot\\components\\AntibotChecker', // Изменено на Larikmc
+                    'class' => 'Larikmc\\Antibot\\components\\AntibotChecker', // ИЗМЕНЕНО: Antibot с маленькой 'b'
                     // Здесь можно передать конфигурацию для компонента
                     'goodBots' => [
                         'YandexImages', 'YandexVideo', 'YandexWebmaster', 'YandexMedia', 'YandexBlogs', 'YandexDirect', 'YandexBot',
@@ -55,7 +55,7 @@ class Module extends \yii\base\Module
 
     /**
      * Возвращает экземпляр компонента AntibotChecker
-     * @return \Larikmc\Antibot\components\AntibotChecker // Изменено на Larikmc
+     * @return \Larikmc\Antibot\components\AntibotChecker
      */
     public function getChecker()
     {
