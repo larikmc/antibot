@@ -1,6 +1,6 @@
 <?php
 
-namespace larikmc\Antibot\components; // Пространство имен с большой 'B' в Antibot
+namespace larikmc\Antibot\components;
 
 use Yii;
 use yii\base\Component;
@@ -173,7 +173,12 @@ class AntibotChecker extends Component
     public $enableRefererCheck = true;
 
     /**
-     * Метод для пометки пользователя как "не-бота" (человека) в сессии и куках.
+     * @var bool Включить/выключить логирование, когда пользователь помечается как человек.
+     */
+    public $enableHumanLog = false;
+
+    /**
+     * Метод для пометки пользователя как "не-бота" (человека).
      */
     public function markAsHuman()
     {
@@ -192,10 +197,12 @@ class AntibotChecker extends Component
         ]);
         Yii::$app->response->cookies->add($cookie);
 
-        // Логируем действие пометки как человека
-        /** @var Request $request */
-        $request = Yii::$app->request;
-        $this->saveAntibotLog($request->userAgent, $request->referrer, 'marked_human');
+        // Логируем действие пометки как человека, если enableHumanLog включен
+        if ($this->enableHumanLog) { // <-- ИСПОЛЬЗУЕМ НОВЫЙ ФЛАГ
+            /** @var Request $request */
+            $request = Yii::$app->request;
+            $this->saveAntibotLog($request->userAgent, $request->referrer, 'human_identified'); // <-- НОВЫЙ СТАТУС
+        }
     }
 
     /**
@@ -350,7 +357,7 @@ class AntibotChecker extends Component
      *
      * @param string $agent User-Agent запроса.
      * @param string|null $referer Реферер запроса.
-     * @param string $status Статус события (например, 'good_bot', 'rate_limit_exceeded', 'empty_referer').
+     * @param string $status Статус события (например, 'good_bot', 'rate_limit_exceeded', 'empty_referer', 'human_identified').
      */
     protected function saveAntibotLog($agent, $referer, $status)
     {
@@ -363,7 +370,7 @@ class AntibotChecker extends Component
         // Добавьте `use backend\models\Antibot;` в начале файла,
         // если эта модель доступна в этом пространстве имен.
 
-        $ip = $this->getRealClientIp(); // ИЗМЕНЕНО: Используем кастомную функцию для логов
+        $ip = $this->getRealClientIp(); // Используем кастомную функцию для получения IP
 
         // Проверяем, существует ли класс модели, чтобы предотвратить фатальные ошибки,
         // если модель не настроена или путь к ней неверен.
