@@ -26,17 +26,21 @@ class AntibotController extends Controller
         /** @var AntibotChecker $checker */
         $checker = $this->module->getChecker();
 
+        // Если пользователь уже помечен как человек (либо из сессии, либо из куки),
+        // сразу перенаправляем его на главную страницу или туда, откуда он пришел.
         if ($checker->checkIfHuman()) {
-            return $this->goHome();
+            $redirectUrl = Yii::$app->session->get('antibot_redirect_url', Yii::$app->homeUrl);
+            Yii::$app->session->remove('antibot_redirect_url');
+            return $this->redirect($redirectUrl);
         }
 
+        // Обработка POST-запроса, когда пользователь нажимает кнопку "Я не робот"
         if (Yii::$app->request->isPost && Yii::$app->request->post('not_bot_button')) {
-            $checker->markAsHuman();
-
+            $checker->markAsHuman(); // Помечаем пользователя как человека
             $redirectUrl = Yii::$app->session->get('antibot_redirect_url', Yii::$app->homeUrl);
             Yii::$app->session->remove('antibot_redirect_url');
 
-            // Вернуто к стандартному способу возврата JSON
+            // Отправляем JSON-ответ для AJAX-запроса
             Yii::$app->response->format = Response::FORMAT_JSON;
             return [
                 'status' => 'success',
@@ -45,7 +49,7 @@ class AntibotController extends Controller
             ];
         }
 
-        //Рендерим представление с кнопкой "Я не бот"
+        // Рендерим представление с кнопкой "Я не бот"
         $this->layout = 'antibot';
         return $this->render('verify');
     }

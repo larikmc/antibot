@@ -1,6 +1,6 @@
 <?php
 
-namespace larikmc\Antibot\components;
+namespace larikmc\antibot\components;
 
 use Yii;
 use yii\base\Component;
@@ -11,7 +11,7 @@ class AntibotChecker extends Component
 {
     public $goodBots = [];
     public $safeRefererDomains = [];
-    public $maxRequests = 30;
+    public $maxRequests = 5;
     public $timeWindow = 60;
 
     /**

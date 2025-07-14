@@ -45,19 +45,18 @@ class AntibotBehavior extends Behavior
         /** @var AntibotChecker $checker */
         $checker = Yii::$app->get($this->checkerComponentId);
 
-        $currentRoute = $controller->uniqueId;
+        $currentRoute = $controller->uniqueId; // например, 'site/index', 'antibot/antibot/verify'
 
         $module = Yii::$app->getModule('antibot');
         if ($module) {
-            // Маршрут исключения и перенаправления
-            $moduleRoutes = [
-                $module->id . '/antibot/verify', // Оставлено antibot/verify, если контроллер не по умолчанию
-            ];
-            $this->excludedRoutes = array_merge($this->excludedRoutes, $moduleRoutes);
+            $moduleVerifyRoute = $module->id . '/' . $module->defaultRoute . '/verify';
+
+            // Добавьте этот конкретный маршрут в excludedRoutes
+            $this->excludedRoutes[] = $moduleVerifyRoute;
         }
 
         if (in_array($currentRoute, $this->excludedRoutes)) {
-            return $event->isValid = true;
+            return $event->isValid = true; // Не проверять исключенные маршруты
         }
 
         if ($checker->checkIfHuman()) {
@@ -66,8 +65,7 @@ class AntibotBehavior extends Behavior
 
         if ($checker->checkIsBot()) {
             Yii::$app->session->set('antibot_redirect_url', Yii::$app->request->url);
-
-            $controller->redirect(['/' . $module->id . '/antibot/verify'])->send(); // Оставлено antibot/verify
+            $controller->redirect(['/' . $module->id . '/' . $module->defaultRoute . '/verify'])->send();
             return $event->isValid = false;
         }
 

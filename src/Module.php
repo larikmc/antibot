@@ -16,6 +16,12 @@ class Module extends \yii\base\Module
     public $controllerNamespace = 'larikmc\\Antibot\\controllers';
 
     /**
+     * @var string The default route for this module.
+     * Maps 'antibot/' to 'antibot/default/index' or 'antibot/antibot/index' if defaultRoute is 'antibot'
+     */
+    public $defaultRoute = 'antibot';
+
+    /**
      * ID компонента AntibotChecker
      * @var string
      */
