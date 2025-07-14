@@ -174,25 +174,10 @@ class AntibotChecker extends Component
     public $enableHumanLog = true;
 
     /**
-     * @var bool Включить/выключить проверку на подозрительные HTTP-заголовки.
-     */
-    public $enableHttpHeaderCheck = true;
-
-    /**
      * @var bool Включить/выключить логирование "хороших" ботов.
      * Если true, боты из списка goodBots будут логироваться со статусом 'good_bot'.
      */
     public $enableGoodBotLog = true;
-
-    /**
-     * @var array Список обязательных HTTP-заголовков и их минимальная длина/ожидаемые значения.
-     */
-    public $requiredHttpHeaders = [
-        'Accept' => ['min_length' => 5],
-        'Accept-Language' => ['min_length' => 2],
-        'Accept-Encoding' => ['min_length' => 4],
-        // 'Connection' - этот заголовок может отсутствовать в некоторых запросах, поэтому он закомментирован
-    ];
 
 
     /**
@@ -276,40 +261,6 @@ class AntibotChecker extends Component
         return $ip;
     }
 
-    /**
-     * Проверяет HTTP-заголовки запроса на подозрительность.
-     * @return string|false Имя подозрительного заголовка и его значение, если найден, иначе false.
-     */
-    protected function checkHttpHeaders(): string|false
-    {
-        /** @var Request $request */
-        $request = Yii::$app->request;
-
-        foreach ($this->requiredHttpHeaders as $headerName => $rules) {
-            $headerValue = $request->headers->get($headerName);
-
-            if (empty($headerValue)) {
-                return $headerName . ' (отсутствует, значение: "' . $headerValue . '")';
-            }
-
-            if (isset($rules['min_length']) && strlen($headerValue) < $rules['min_length']) {
-                return $headerName . ' (короткий: ' . strlen($headerValue) . ', значение: "' . $headerValue . '")';
-            }
-
-            if (isset($rules['expected_value'])) {
-                if (is_array($rules['expected_value'])) {
-                    if (!in_array(strtolower($headerValue), array_map('strtolower', $rules['expected_value']))) {
-                        return $headerName . ' (неожиданное значение: "' . $headerValue . '")';
-                    }
-                } elseif (strtolower($headerValue) !== strtolower($rules['expected_value'])) {
-                    return $headerName . ' (неожиданное значение: "' . $headerValue . '")';
-                }
-            }
-        }
-
-        return false; // Заголовки кажутся нормальными
-    }
-
 
     /**
      * Основной метод проверки на бота.
@@ -330,24 +281,13 @@ class AntibotChecker extends Component
             return false; // Не бот, он легитимен
         }
 
-        // 2. Проверка HTTP-заголовков на подозрительность
-        $suspiciousHeaderInfo = false;
-        if ($this->enableHttpHeaderCheck) {
-            $suspiciousHeaderInfo = $this->checkHttpHeaders();
-        }
-
-        if ($suspiciousHeaderInfo !== false) {
-            $this->saveAntibotLog($userAgent, $referer, 'suspicious_headers: ' . $suspiciousHeaderInfo);
-            return true;
-        }
-
-        // 3. Более строгая проверка User-Agent (пустой или очень короткий UA)
+        // 2. Более строгая проверка User-Agent (пустой или очень короткий UA)
         if ($this->enableEmptyUaCheck && (empty($userAgent) || strlen($userAgent) < 10)) {
             $this->saveAntibotLog($userAgent, $referer, 'empty_or_short_ua');
             return true;
         }
 
-        // 4. Проверка Referer
+        // 3. Проверка Referer
         if ($this->enableRefererCheck) {
             if (empty($referer)) {
                 $this->saveAntibotLog($userAgent, '', 'empty_referer');
@@ -371,7 +311,7 @@ class AntibotChecker extends Component
             }
         }
 
-        // 5. Ограничение частоты запросов на основе IP
+        // 4. Ограничение частоты запросов на основе IP
         if ($this->enableRateLimit) {
             $ip = $this->getRealClientIp();
             $cache = Yii::$app->cache;
@@ -400,7 +340,7 @@ class AntibotChecker extends Component
      *
      * @param string $agent User-Agent запроса.
      * @param string|null $referer Реферер запроса.
-     * @param string $status Статус события (например, 'good_bot', 'rate_limit_exceeded', 'empty_referer', 'human_identified', 'non_suspicious', 'suspicious_headers').
+     * @param string $status Статус события (например, 'good_bot', 'rate_limit_exceeded', 'empty_referer', 'human_identified').
      */
     protected function saveAntibotLog($agent, $referer, $status)
     {
