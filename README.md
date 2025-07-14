@@ -53,6 +53,7 @@ composer require larikmc/antibot
         // 'enableRateLimit' => false, // Включить/отключить проверку ограничения частоты запросов (по умолчанию true)
         // 'enableEmptyUaCheck' => false, // Отключить проверку пустого User-Agent (по умолчанию true)
         // 'enableRefererCheck' => false, // Отключить проверку реферера (по умолчанию true)
+        // 'enableHttpHeaderCheck' => false, // Отключить проверку заголовков браузера (по умолчанию true)
         // 'enableHumanLog' => true, // Включить логирование "человека" (по умолчанию false)
         // 'enableAllTrafficLog' => true, // Включить логирование всех посещений (по умолчанию false)
     ],

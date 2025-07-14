@@ -72,25 +72,25 @@ class AntibotChecker extends Component
         'Mail.RU_Bot',           // Краулер Mail.ru
 
         // SEO & Monitoring Tools
-//        'AhrefsBot',             // Краулер Ahrefs
-//        'SemrushBot',            // Краулер Semrush
-//        'MJ12bot',               // Краулер Majestic
-//        'DotBot',                // Краулер Moz
-//        'Crawlster',             // Краулер для сбора данных
-//        'MegaIndex',             // Краулер MegaIndex
-//        'Screaming Frog SEO Spider',// Инструмент Screaming Frog
-//        'UptimeRobot',           // Сервис мониторинга доступности
-//        'PingdomBot',            // Сервис мониторинга производительности
-//        'StatusCake',            // Сервис мониторинга доступности
-//        'NewRelicPinger',        // Агент New Relic для мониторинга
-//        'Datadog/Synthetics',    // Агент Datadog для синтетических проверок
-//        'Site24x7',              // Сервис мониторинга Site24x7
-//        'ContentKing',           // Сервис аудита контента и SEO
-//        'NetcraftSurveyAgent',   // Агент Netcraft для сбора данных о веб-серверах
-//        'CensysBot',             // Краулер Censys для исследования безопасности
-//        'ZoominfoBot',           // Краулер ZoomInfo для бизнес-данных
-//        'Cliqzbot',              // Краулер Cliqz
-//        'MauiBot',               // Краулер для сбора данных/аналитики
+        // 'AhrefsBot',             // Краулер Ahrefs
+        // 'SemrushBot',            // Краулер Semrush
+        // 'MJ12bot',               // Краулер Majestic
+        // 'DotBot',                // Краулер Moz
+        // 'Crawlster',             // Краулер для сбора данных
+        // 'MegaIndex',             // Краулер MegaIndex
+        // 'Screaming Frog SEO Spider',// Инструмент Screaming Frog
+        // 'UptimeRobot',           // Сервис мониторинга доступности
+        // 'PingdomBot',            // Сервис мониторинга производительности
+        // 'StatusCake',            // Сервис мониторинга доступности
+        // 'NewRelicPinger',        // Агент New Relic для мониторинга
+        // 'Datadog/Synthetics',    // Агент Datadog для синтетических проверок
+        // 'Site24x7',              // Сервис мониторинга Site24x7
+        // 'ContentKing',           // Сервис аудита контента и SEO
+        // 'NetcraftSurveyAgent',   // Агент Netcraft для сбора данных о веб-серверах
+        // 'CensysBot',             // Краулер Censys для исследования безопасности
+        // 'ZoominfoBot',           // Краулер ZoomInfo для бизнес-данных
+        // 'Cliqzbot',              // Краулер Cliqz
+        // 'MauiBot',               // Краулер для сбора данных/аналитики
     ];
 
     /**
@@ -150,7 +150,7 @@ class AntibotChecker extends Component
     /**
      * @var int Максимальное количество запросов за 'timeWindow' с одного IP.
      */
-    public $maxRequests = 40; // <-- ИЗМЕНЕНО: Значение по умолчанию установлено на 40
+    public $maxRequests = 40;
 
     /**
      * @var int Временное окно в секундах, для которого отслеживается maxRequests.
@@ -182,6 +182,24 @@ class AntibotChecker extends Component
      * Если true, все запросы, не идентифицированные как боты, будут логироваться со статусом 'non_suspicious'.
      */
     public $enableAllTrafficLog = false;
+
+    /**
+     * @var bool Включить/выключить проверку на подозрительные HTTP-заголовки.
+     */
+    public $enableHttpHeaderCheck = true;
+
+    /**
+     * @var array Список обязательных HTTP-заголовков и их минимальная длина/ожидаемые значения.
+     */
+    public $requiredHttpHeaders = [
+        'Accept' => ['min_length' => 5], // Пример: "text/html"
+        'Accept-Language' => ['min_length' => 2], // Пример: "ru-RU,ru;q=0.9"
+        'Accept-Encoding' => ['min_length' => 4], // Пример: "gzip, deflate, br"
+        'Connection' => ['expected_value' => ['keep-alive', 'close']], // Пример: "keep-alive"
+        // Можно добавить другие заголовки, если вы ожидаете их наличие
+        // 'User-Agent' - уже проверяется отдельно
+    ];
+
 
     /**
      * Метод для пометки пользователя как "не-бота" (человека).
@@ -276,6 +294,44 @@ class AntibotChecker extends Component
     }
 
     /**
+     * Проверяет HTTP-заголовки запроса на подозрительность.
+     * @return bool True, если заголовки подозрительны, false в противном случае.
+     */
+    protected function checkHttpHeaders(): bool
+    {
+        /** @var Request $request */
+        $request = Yii::$app->request;
+
+        foreach ($this->requiredHttpHeaders as $headerName => $rules) {
+            $headerValue = $request->headers->get($headerName);
+
+            // Проверяем наличие заголовка
+            if (empty($headerValue)) {
+                return true; // Заголовок отсутствует
+            }
+
+            // Проверяем минимальную длину, если указано
+            if (isset($rules['min_length']) && strlen($headerValue) < $rules['min_length']) {
+                return true; // Заголовок слишком короткий
+            }
+
+            // Проверяем ожидаемые значения, если указано (для заголовков типа Connection)
+            if (isset($rules['expected_value'])) {
+                if (is_array($rules['expected_value'])) {
+                    if (!in_array(strtolower($headerValue), array_map('strtolower', $rules['expected_value']))) {
+                        return true; // Значение не соответствует ожидаемым
+                    }
+                } elseif (strtolower($headerValue) !== strtolower($rules['expected_value'])) {
+                    return true; // Значение не соответствует ожидаемому
+                }
+            }
+        }
+
+        return false; // Заголовки кажутся нормальными
+    }
+
+
+    /**
      * Основной метод проверки на бота.
      * @return bool True, если это бот, false в противном случае.
      */
@@ -292,7 +348,13 @@ class AntibotChecker extends Component
             return false; // Не бот, он легитимен
         }
 
-        // 2. Более строгая проверка User-Agent (пустой или очень короткий UA)
+        // 2. Проверка HTTP-заголовков на подозрительность
+        if ($this->enableHttpHeaderCheck && $this->checkHttpHeaders()) {
+            $this->saveAntibotLog($userAgent, $referer, 'suspicious_headers');
+            return true;
+        }
+
+        // 3. Более строгая проверка User-Agent (пустой или очень короткий UA)
         // Эта проверка срабатывает, если good_bot не сработал.
         // Проверка осуществляется ТОЛЬКО если enableEmptyUaCheck установлен в true
         if ($this->enableEmptyUaCheck && (empty($userAgent) || strlen($userAgent) < 10)) {
@@ -300,7 +362,7 @@ class AntibotChecker extends Component
             return true;
         }
 
-        // 3. Проверка Referer
+        // 4. Проверка Referer
         // Проверка осуществляется ТОЛЬКО если enableRefererCheck установлен в true
         if ($this->enableRefererCheck) {
             if (empty($referer)) {
@@ -330,11 +392,11 @@ class AntibotChecker extends Component
             }
         }
 
-        // 4. Ограничение частоты запросов на основе IP
+        // 5. Ограничение частоты запросов на основе IP
         // Проверка осуществляется ТОЛЬКО если enableRateLimit установлен в true
         if ($this->enableRateLimit) {
             // Теперь используем нашу кастомную функцию для получения IP клиента
-            $ip = $this->getRealClientIp(); // ИЗМЕНЕНО
+            $ip = $this->getRealClientIp();
             $cache = Yii::$app->cache; // Предполагается, что компонент 'cache' настроен
 
             $key = 'antibot_rate_limit_' . $ip; // Уникальный ключ кэша для IP
@@ -368,7 +430,7 @@ class AntibotChecker extends Component
      *
      * @param string $agent User-Agent запроса.
      * @param string|null $referer Реферер запроса.
-     * @param string $status Статус события (например, 'good_bot', 'rate_limit_exceeded', 'empty_referer', 'human_identified', 'non_suspicious').
+     * @param string $status Статус события (например, 'good_bot', 'rate_limit_exceeded', 'empty_referer', 'human_identified', 'non_suspicious', 'suspicious_headers').
      */
     protected function saveAntibotLog($agent, $referer, $status)
     {
