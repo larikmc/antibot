@@ -1,69 +1,63 @@
 <?php
 
-namespace larikmc\Antibot;
+namespace larikmc\Antibot; // Убедитесь, что пространство имен соответствует вашему вендору (larikmc)
 
 use Yii;
+use larikmc\Antibot\components\AntibotChecker; // Импортируем класс AntibotChecker
 
 /**
  * Antibot module definition class.
- * This module contains the AntibotController and its views.
+ * Этот модуль содержит AntibotController и его представления.
  */
 class Module extends \yii\base\Module
 {
     /**
      * @inheritdoc
      */
-    public $controllerNamespace = 'larikmc\\Antibot\\controllers';
+    public $controllerNamespace = 'larikmc\\Antibot\\controllers'; // Убедитесь, что пространство имен контроллеров соответствует
 
     /**
      * @var string The default route for this module.
-     * Maps 'antibot/' to 'antibot/default/index' or 'antibot/antibot/index' if defaultRoute is 'antibot'
+     * Устанавливаем контроллер по умолчанию для модуля.
+     * Если установлен 'antibot', то URL /antibot/ будет маршрутизироваться на AntibotController.
+     * Если не установлен, то по умолчанию будет 'default'.
      */
     public $defaultRoute = 'antibot';
 
     /**
-     * ID компонента AntibotChecker
-     * @var string
+     * @var string ID компонента AntibotChecker, который будет использоваться модулем.
+     * По умолчанию 'antibotChecker'.
      */
     public $checkerComponentId = 'antibotChecker';
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function init()
     {
         parent::init();
 
-        // Настраиваем компонент, если его еще нет
+        // Настраиваем компонент AntibotChecker, если он еще не был настроен в конфигурации приложения.
+        // Это позволяет модулю работать "из коробки" с дефолтными настройками,
+        // но также позволяет переопределять их в main.php.
         if (!Yii::$app->has($this->checkerComponentId)) {
             Yii::$app->setComponents([
                 $this->checkerComponentId => [
                     'class' => 'larikmc\\Antibot\\components\\AntibotChecker',
-                    // Здесь можно передать конфигурацию для компонента
-                    'goodBots' => [
-                        'YandexImages', 'YandexVideo', 'YandexWebmaster', 'YandexMedia', 'YandexBlogs', 'YandexDirect', 'YandexBot',
-                        'YandexMetrika', 'YandexRCA', 'YandexAccessibilityBot', 'YandexRenderResourcesBot', 'YandexMobileBot',
-                        'YaDirectFetcher', 'Googlebot', 'vkShare', 'VKRobotRB', 'WhatsApp', 'TelegramBot', 'Pinterestbot',
-                        'OdklBot', 'Mediapartners-Google', 'Google-Read-Aloud', 'AdsBot-Google', 'Chrome-Lighthouse',
-                        'bingbot', 'Mail.RU_Bot',
-                    ],
-                    'safeRefererDomains' => [
-                        'google.com', 'yandex.ru', 'yandex.kz', 'yandex.ua', 'yandex.by', 'bing.com',
-                        'mail.ru', 'yahoo.com', 'facebook.com', 'vk.com', 'twitter.com', 't.me', 'pinterest.com',
-                        'ok.ru', 'linkedin.com', 'reddit.com',
-                    ],
-                    'maxRequests' => 30,
-                    'timeWindow' => 60,
+                    // Здесь больше НЕ указываются goodBots, safeRefererDomains и другие параметры.
+                    // Они будут взяты из дефолтных значений, определенных в самом AntibotChecker.php,
+                    // или переопределены в frontend/config/main.php.
                 ],
             ]);
         }
     }
 
     /**
-     * Возвращает экземпляр компонента AntibotChecker
-     * @return \larikmc\Antibot\components\AntibotChecker
+     * Возвращает экземпляр компонента AntibotChecker.
+     *
+     * @return AntibotChecker Компонент AntibotChecker.
      */
-    public function getChecker()
+    public function getChecker(): AntibotChecker
     {
         return Yii::$app->get($this->checkerComponentId);
     }
