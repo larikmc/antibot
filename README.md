@@ -176,3 +176,25 @@ class SiteController extends AppController // SiteController расширяет 
     // ... остальной код SiteController ...
 }
 ```
+
+Для доступа логам из бэкенда вам нужно
+---
+
+1. В файле backend/config/main.php (или backend/config/main-local.php, если вы используете его для локальных настроек) у вас должна быть секция modules, где зарегистрирован ваш модуль:
+
+```php
+'modules' => [
+    'antibot' => [ // Это ID вашего модуля, который будет использоваться в URL
+        'class' => 'larikmc\\Antibot\\Module',
+        // Если вы хотите, чтобы при переходе по /antibot/ сразу открывались логи,
+        // можно добавить:
+        // 'defaultRoute' => 'log',
+    ],
+],
+```
+
+2. Доступ к логам через URL.
+
+https://your-domain.com/admin/antibot/log/index
+
+Если вы добавили 'defaultRoute' => 'log' в конфигурацию модуля, то вы также сможете получить доступ к логам просто по https://your-domain.com/admin/antibot/.
