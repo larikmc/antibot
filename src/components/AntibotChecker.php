@@ -72,25 +72,25 @@ class AntibotChecker extends Component
         'Mail.RU_Bot',           // Краулер Mail.ru
 
         // SEO & Monitoring Tools
-        'AhrefsBot',             // Краулер Ahrefs
-        'SemrushBot',            // Краулер Semrush
-        'MJ12bot',               // Краулер Majestic
-        'DotBot',                // Краулер Moz
-        'Crawlster',             // Краулер для сбора данных
-        'MegaIndex',             // Краулер MegaIndex
-        'Screaming Frog SEO Spider',// Инструмент Screaming Frog
-        'UptimeRobot',           // Сервис мониторинга доступности
-        'PingdomBot',            // Сервис мониторинга производительности
-        'StatusCake',            // Сервис мониторинга доступности
-        'NewRelicPinger',        // Агент New Relic для мониторинга
-        'Datadog/Synthetics',    // Агент Datadog для синтетических проверок
-        'Site24x7',              // Сервис мониторинга Site24x7
-        'ContentKing',           // Сервис аудита контента и SEO
-        'NetcraftSurveyAgent',   // Агент Netcraft для сбора данных о веб-серверах
-        'CensysBot',             // Краулер Censys для исследования безопасности
-        'ZoominfoBot',           // Краулер ZoomInfo для бизнес-данных
-        'Cliqzbot',              // Краулер Cliqz
-        'MauiBot',               // Краулер для сбора данных/аналитики
+//        'AhrefsBot',             // Краулер Ahrefs
+//        'SemrushBot',            // Краулер Semrush
+//        'MJ12bot',               // Краулер Majestic
+//        'DotBot',                // Краулер Moz
+//        'Crawlster',             // Краулер для сбора данных
+//        'MegaIndex',             // Краулер MegaIndex
+//        'Screaming Frog SEO Spider',// Инструмент Screaming Frog
+//        'UptimeRobot',           // Сервис мониторинга доступности
+//        'PingdomBot',            // Сервис мониторинга производительности
+//        'StatusCake',            // Сервис мониторинга доступности
+//        'NewRelicPinger',        // Агент New Relic для мониторинга
+//        'Datadog/Synthetics',    // Агент Datadog для синтетических проверок
+//        'Site24x7',              // Сервис мониторинга Site24x7
+//        'ContentKing',           // Сервис аудита контента и SEO
+//        'NetcraftSurveyAgent',   // Агент Netcraft для сбора данных о веб-серверах
+//        'CensysBot',             // Краулер Censys для исследования безопасности
+//        'ZoominfoBot',           // Краулер ZoomInfo для бизнес-данных
+//        'Cliqzbot',              // Краулер Cliqz
+//        'MauiBot',               // Краулер для сбора данных/аналитики
     ];
 
     /**
