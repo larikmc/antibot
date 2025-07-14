@@ -1,6 +1,6 @@
 <?php
 
-namespace larikmc\Antibot\components;
+namespace larikmc\Antibot\components; // Пространство имен с большой 'B' в Antibot
 
 use Yii;
 use yii\base\Component;
@@ -20,37 +20,137 @@ class AntibotChecker extends Component
      * @var array Список известных "хороших" ботов (User-Agent'ы или их части), которые не должны блокироваться.
      */
     public $goodBots = [
-        'YandexImages', 'YandexVideo', 'YandexWebmaster', 'YandexMedia', 'YandexBlogs', 'YandexDirect', 'YandexBot',
-        'YandexMetrika', 'YandexRCA', 'YandexAccessibilityBot', 'YandexRenderResourcesBot', 'YandexMobileBot',
-        'YaDirectFetcher', 'Googlebot', 'vkShare', 'VKRobotRB', 'WhatsApp', 'TelegramBot', 'Pinterestbot',
-        'OdklBot', 'Mediapartners-Google', 'Google-Read-Aloud', 'AdsBot-Google', 'Chrome-Lighthouse',
-        'bingbot', 'Mail.RU_Bot',
-        // Добавленные боты:
-        'DuckDuckBot', 'Baiduspider', 'Slurp', 'Facebot', 'Twitterbot', 'LinkedInBot', 'AhrefsBot', 'SemrushBot',
-        'MJ12bot', 'DotBot', 'Exabot', 'SeznamBot', 'Applebot', 'Discordbot', 'Slackbot', 'Embedly',
-        'Bytespider', 'MauiBot', 'Sogou web spider', 'PetalBot', 'CensysBot', 'ZoominfoBot', 'Cliqzbot',
-        'MauiBot', 'Crawlster', 'MegaIndex', 'Screaming Frog SEO Spider', 'UptimeRobot', 'PingdomBot',
-        'StatusCake', 'NewRelicPinger', 'Datadog/Synthetics', 'Site24x7', 'ContentKing', 'NetcraftSurveyAgent',
+        // Yandex Bots
+        'YandexImages',          // Краулер изображений Яндекса
+        'YandexVideo',           // Краулер видео Яндекса
+        'YandexWebmaster',       // Инструменты Яндекс.Вебмастера
+        'YandexMedia',           // Медиа-краулер Яндекса
+        'YandexBlogs',           // Краулер блогов Яндекса
+        'YandexDirect',          // Краулер Яндекс.Директа
+        'YandexBot',             // Основной краулер Яндекса
+        'YandexMetrika',         // Краулер Яндекс.Метрики
+        'YandexRCA',             // Робот для проверки доступности сайтов (Яндекс)
+        'YandexAccessibilityBot',// Робот для проверки доступности (accessibility)
+        'YandexRenderResourcesBot',// Робот для рендеринга ресурсов (Яндекс)
+        'YandexMobileBot',       // Мобильный краулер Яндекса
+        'YaDirectFetcher',       // Фетчер Яндекс.Директа
+
+        // Google Bots
+        'Googlebot',             // Основной краулер Google
+        'Mediapartners-Google',  // Краулер Google AdSense
+        'Google-Read-Aloud',     // Сервис Google "Читать вслух"
+        'AdsBot-Google',         // Краулер Google Ads
+        'Chrome-Lighthouse',     // Инструмент Google Lighthouse для аудита производительности
+        'Chrome-Privacy-Preserving-Prefetch-Proxy', // Прокси Chrome для предварительной загрузки с сохранением конфиденциальности
+        'GPTBot',                // Краулер OpenAI для обучения ИИ
+
+        // Social Media Bots
+        'vkShare',               // Краулер ВКонтакте для предпросмотра ссылок
+        'VKRobotRB',             // Робот ВКонтакте
+        'WhatsApp',              // Краулер WhatsApp для предпросмотра ссылок
+        'TelegramBot',           // Краулер Telegram для предпросмотра ссылок
+        'Pinterestbot',          // Краулер Pinterest для предпросмотра пинов
+        'OdklBot',               // Краулер Одноклассников
+        'Facebot',               // Краулер Facebook
+        'Twitterbot',            // Краулер Twitter
+        'LinkedInBot',           // Краулер LinkedIn
+        'Discordbot',            // Краулер Discord
+        'Slackbot',              // Краулер Slack
+        'Embedly',               // Сервис Embedly для встраивания контента
+
+        // Other Search Engine Bots
+        'DuckDuckBot',           // Краулер DuckDuckGo
+        'Baiduspider',           // Краулер Baidu
+        'Slurp',                 // Краулер Yahoo!
+        'Exabot',                // Краулер Exalead
+        'SeznamBot',             // Краулер Seznam.cz
+        'Applebot',              // Краулер Apple (Siri, Spotlight)
+        'Bytespider',            // Краулер ByteDance (TikTok)
+        'Sogou web spider',      // Краулер Sogou
+        'PetalBot',              // Краулер Huawei (Petal Search)
+        'bingbot',               // Краулер Bing
+        'Mail.RU_Bot',           // Краулер Mail.ru
+
+        // SEO & Monitoring Tools
+        'AhrefsBot',             // Краулер Ahrefs
+        'SemrushBot',            // Краулер Semrush
+        'MJ12bot',               // Краулер Majestic
+        'DotBot',                // Краулер Moz
+        'Crawlster',             // Краулер для сбора данных
+        'MegaIndex',             // Краулер MegaIndex
+        'Screaming Frog SEO Spider',// Инструмент Screaming Frog
+        'UptimeRobot',           // Сервис мониторинга доступности
+        'PingdomBot',            // Сервис мониторинга производительности
+        'StatusCake',            // Сервис мониторинга доступности
+        'NewRelicPinger',        // Агент New Relic для мониторинга
+        'Datadog/Synthetics',    // Агент Datadog для синтетических проверок
+        'Site24x7',              // Сервис мониторинга Site24x7
+        'ContentKing',           // Сервис аудита контента и SEO
+        'NetcraftSurveyAgent',   // Агент Netcraft для сбора данных о веб-серверах
+        'CensysBot',             // Краулер Censys для исследования безопасности
+        'ZoominfoBot',           // Краулер ZoomInfo для бизнес-данных
+        'Cliqzbot',              // Краулер Cliqz
+        'MauiBot',               // Краулер для сбора данных/аналитики
     ];
 
     /**
      * @var array Список доменов, с которых реферер считается безопасным.
      */
     public $safeRefererDomains = [
-        'google.com', 'yandex.ru', 'yandex.kz', 'yandex.ua', 'yandex.by', 'bing.com',
-        'mail.ru', 'yahoo.com', 'facebook.com', 'vk.com', 'twitter.com', 't.me', 'pinterest.com',
-        'ok.ru', 'linkedin.com', 'reddit.com',
-        // Добавленные домены:
-        'duckduckgo.com', 'baidu.com', 'yahoo.co.jp', 'ecosia.org', 'startpage.com', 'brave.com',
-        't.co', 'instagram.com', 'tiktok.com', 'snapchat.com', 'tumblr.com', 'flickr.com',
-        'medium.com', 'quora.com', 'stackoverflow.com', 'github.com', 'gitlab.com', 'bitbucket.org',
-        'wikipedia.org', 'amazon.com', 'ebay.com', 'aliexpress.com', 'shopify.com',
+        // Поисковые системы и их региональные версии
+        'google.com',            // Google (основной)
+        'yandex.ru',             // Яндекс (Россия)
+        'yandex.kz',             // Яндекс (Казахстан)
+        'yandex.ua',             // Яндекс (Украина)
+        'yandex.by',             // Яндекс (Беларусь)
+        'bing.com',              // Bing
+        'mail.ru',               // Mail.ru
+        'yahoo.com',             // Yahoo (основной)
+        'duckduckgo.com',        // DuckDuckGo
+        'baidu.com',             // Baidu
+        'yahoo.co.jp',           // Yahoo Japan
+        'ecosia.org',            // Ecosia
+        'startpage.com',         // Startpage (ориентирован на конфиденциальность)
+        'brave.com',             // Brave Search
+
+        // Социальные сети и мессенджеры
+        'facebook.com',          // Facebook
+        'vk.com',                // ВКонтакте
+        'twitter.com',           // Twitter/X
+        't.me',                  // Telegram
+        'pinterest.com',         // Pinterest
+        'ok.ru',                 // Одноклассники
+        'linkedin.com',          // LinkedIn
+        'instagram.com',         // Instagram
+        'tiktok.com',            // TikTok
+        'snapchat.com',          // Snapchat
+        'tumblr.com',            // Tumblr
+
+        // Платформы для публикации контента и сообщества
+        'reddit.com',            // Reddit
+        'medium.com',            // Medium
+        'quora.com',             // Quora
+        'stackoverflow.com',     // Stack Overflow
+        'github.com',            // GitHub
+        'gitlab.com',            // GitLab
+        'bitbucket.org',         // Bitbucket
+        'wikipedia.org',         // Wikipedia
+        'flickr.com',            // Flickr
+
+        // Крупные торговые площадки
+        'amazon.com',            // Amazon
+        'ebay.com',              // eBay
+        'aliexpress.com',        // AliExpress
+        'shopify.com',           // Shopify
+
+        // Прочие доверенные домены (например, сокращатели ссылок, если они используются)
+        't.co',                  // Сокращатель ссылок Twitter
     ];
 
     /**
      * @var int Максимальное количество запросов за 'timeWindow' с одного IP.
      */
-    public $maxRequests = 20;
+    public $maxRequests = 5;
 
     /**
      * @var int Временное окно в секундах, для которого отслеживается maxRequests.
@@ -132,6 +232,37 @@ class AntibotChecker extends Component
     }
 
     /**
+     * Вспомогательная функция для получения реального IP-адреса клиента.
+     * Используется как обходной путь для старых версий Yii2, не поддерживающих trustedProxies.
+     * @return string IP-адрес клиента.
+     */
+    protected function getRealClientIp()
+    {
+        // Порядок заголовков здесь важен!
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            // X-Forwarded-For может содержать несколько IP через запятую (клиент, прокси1, прокси2)
+            // Нам нужен первый (самый левый)
+            $ip = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+        } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) { // Часто используется Nginx
+            $ip = $_SERVER['HTTP_X_REAL_IP'];
+        } elseif (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) { // Для Cloudflare
+            $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
+        } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        } else {
+            $ip = 'UNKNOWN'; // Если IP не найден
+        }
+
+        // ВНИМАНИЕ: Вручную реализованная проверка доверенных прокси здесь не выполняется.
+        // Если вы используете эту функцию, убедитесь, что ваш прокси-сервер надежен
+        // и не позволяет подделывать заголовки IP.
+
+        return $ip;
+    }
+
+    /**
      * Основной метод проверки на бота.
      * @return bool True, если это бот, false в противном случае.
      */
@@ -189,7 +320,8 @@ class AntibotChecker extends Component
         // 4. Ограничение частоты запросов на основе IP
         // Проверка осуществляется ТОЛЬКО если enableRateLimit установлен в true
         if ($this->enableRateLimit) {
-            $ip = Yii::$app->request->userIP;
+            // Теперь используем нашу кастомную функцию для получения IP клиента
+            $ip = $this->getRealClientIp(); // ИЗМЕНЕНО
             $cache = Yii::$app->cache; // Предполагается, что компонент 'cache' настроен
 
             $key = 'antibot_rate_limit_' . $ip; // Уникальный ключ кэша для IP
@@ -210,8 +342,7 @@ class AntibotChecker extends Component
             }
         }
 
-        // Если все проверки пройдены, запрос не определяется как бот по этим правилам
-        return false;
+        return false; // Если все проверки пройдены, запрос не определяется как бот по этим правилам
     }
 
     /**
@@ -232,6 +363,8 @@ class AntibotChecker extends Component
         // Добавьте `use backend\models\Antibot;` в начале файла,
         // если эта модель доступна в этом пространстве имен.
 
+        $ip = $this->getRealClientIp(); // ИЗМЕНЕНО: Используем кастомную функцию для логов
+
         // Проверяем, существует ли класс модели, чтобы предотвратить фатальные ошибки,
         // если модель не настроена или путь к ней неверен.
         if (class_exists('backend\models\Antibot')) { // Измените на ваше реальное пространство имен, если оно другое
@@ -239,7 +372,7 @@ class AntibotChecker extends Component
             $model->date = time();
             $model->referer = $referer;
             $model->agent = $agent;
-            $model->ip = Yii::$app->request->userIP;
+            $model->ip = $ip; // Используем IP из кастомной функции
             $model->page = Yii::$app->request->url;
             $model->status = $status;
 
@@ -248,7 +381,7 @@ class AntibotChecker extends Component
             }
         } else {
             // Если модель Antibot не найдена, логируем ошибку через Yii::error
-            Yii::error("Antibot model (backend\\models\\Antibot) not found for logging. Please check the namespace or model availability. Log data: Type={$status}, IP=" . Yii::$app->request->userIP . ", UA={$agent}, Ref={$referer}, URL=" . Yii::$app->request->url, __METHOD__);
+            Yii::error("Antibot model (backend\\models\\Antibot) not found for logging. Please check the namespace or model availability. Log data: Type={$status}, IP=" . $ip . ", UA={$agent}, Ref={$referer}, URL=" . Yii::$app->request->url, __METHOD__);
         }
     }
 }
