@@ -50,10 +50,10 @@ composer require larikmc/antibot
         // 'safeRefererDomains' => [
         //     'google.com', 'yandex.ru', 'bing.com', 'mail.ru', 'facebook.com', 'vk.com',
         // ],
-        // 'enableRateLimit' => true, // Включить/отключить проверку ограничения частоты запросов (по умолчанию true)
-        // 'enableEmptyUaCheck' => true, // Включить/отключить проверку пустого User-Agent (по умолчанию true)
-        // 'enableRefererCheck' => true, // Включить/отключить проверку реферера (по умолчанию true)
-        //'enableHumanLog' => true, // Включить/отключить логирование "человека" (по умолчанию false)
+        // 'enableRateLimit' => false, // Включить/отключить проверку ограничения частоты запросов (по умолчанию true)
+        // 'enableEmptyUaCheck' => false, // Отключить проверку пустого User-Agent (по умолчанию true)
+        // 'enableRefererCheck' => false, // Отключить проверку реферера (по умолчанию true)
+        // 'enableHumanLog' => true, // Включить логирование "человека" (по умолчанию false)
     ],
 
     // ... остальные компоненты ...
