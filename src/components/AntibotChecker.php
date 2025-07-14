@@ -1,6 +1,6 @@
 <?php
 
-namespace larikmc\Antibot\components;
+namespace larikmc\Antibot\components; // Пространство имен с большой 'B' в Antibot
 
 use Yii;
 use yii\base\Component;
@@ -150,7 +150,7 @@ class AntibotChecker extends Component
     /**
      * @var int Максимальное количество запросов за 'timeWindow' с одного IP.
      */
-    public $maxRequests = 5;
+    public $maxRequests = 40; // <-- ИЗМЕНЕНО: Значение по умолчанию установлено на 40
 
     /**
      * @var int Временное окно в секундах, для которого отслеживается maxRequests.
@@ -175,7 +175,13 @@ class AntibotChecker extends Component
     /**
      * @var bool Включить/выключить логирование, когда пользователь помечается как человек.
      */
-    public $enableHumanLog = false;
+    public $enableHumanLog = true;
+
+    /**
+     * @var bool Включить/выключить логирование всех не-ботовых посещений.
+     * Если true, все запросы, не идентифицированные как боты, будут логироваться со статусом 'non_suspicious'.
+     */
+    public $enableAllTrafficLog = false;
 
     /**
      * Метод для пометки пользователя как "не-бота" (человека).
@@ -198,10 +204,10 @@ class AntibotChecker extends Component
         Yii::$app->response->cookies->add($cookie);
 
         // Логируем действие пометки как человека, если enableHumanLog включен
-        if ($this->enableHumanLog) { // <-- ИСПОЛЬЗУЕМ НОВЫЙ ФЛАГ
+        if ($this->enableHumanLog) {
             /** @var Request $request */
             $request = Yii::$app->request;
-            $this->saveAntibotLog($request->userAgent, $request->referrer, 'human_identified'); // <-- НОВЫЙ СТАТУС
+            $this->saveAntibotLog($request->userAgent, $request->referrer, 'human_identified');
         }
     }
 
@@ -349,7 +355,12 @@ class AntibotChecker extends Component
             }
         }
 
-        return false; // Если все проверки пройдены, запрос не определяется как бот по этим правилам
+        // Если все проверки пройдены, запрос не определяется как бот по этим правилам
+        // Логируем как "неподозрительное" посещение, если опция включена
+        if ($this->enableAllTrafficLog) {
+            $this->saveAntibotLog($userAgent, $referer, 'non_suspicious');
+        }
+        return false;
     }
 
     /**
@@ -357,7 +368,7 @@ class AntibotChecker extends Component
      *
      * @param string $agent User-Agent запроса.
      * @param string|null $referer Реферер запроса.
-     * @param string $status Статус события (например, 'good_bot', 'rate_limit_exceeded', 'empty_referer', 'human_identified').
+     * @param string $status Статус события (например, 'good_bot', 'rate_limit_exceeded', 'empty_referer', 'human_identified', 'non_suspicious').
      */
     protected function saveAntibotLog($agent, $referer, $status)
     {

@@ -54,6 +54,7 @@ composer require larikmc/antibot
         // 'enableEmptyUaCheck' => false, // Отключить проверку пустого User-Agent (по умолчанию true)
         // 'enableRefererCheck' => false, // Отключить проверку реферера (по умолчанию true)
         // 'enableHumanLog' => true, // Включить логирование "человека" (по умолчанию false)
+        // 'enableAllTrafficLog' => true, // Включить логирование всех посещений (по умолчанию false)
     ],
 
     // ... остальные компоненты ...
