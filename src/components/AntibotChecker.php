@@ -1,15 +1,11 @@
 <?php
 
-namespace larikmc\Antibot\components; // Пространство имен с большой 'B' в Antibot
+namespace larikmc\Antibot\components;
 
 use Yii;
 use yii\base\Component;
 use yii\web\Cookie;
-use yii\web\Request; // Добавлено для явной подсказки типа
-
-// use backend\models\Antibot; // Раскомментируйте и убедитесь, что эта модель доступна,
-// или скорректируйте пространство имен (например, common\models\Antibot),
-// если она используется как во фронтенде, так и в бэкенде.
+use yii\web\Request;
 
 /**
  * AntibotChecker - Компонент для обнаружения и логирования подозрительных запросов.
@@ -100,7 +96,6 @@ class AntibotChecker extends Component
         // Поисковые системы и их региональные версии
         'google.com',            // Google (основной)
         'yandex.ru',             // Яндекс (Россия)
-        'ya.ru',                 // Яндекс (Россия)
         'yandex.kz',             // Яндекс (Казахстан)
         'yandex.ua',             // Яндекс (Украина)
         'yandex.by',             // Яндекс (Беларусь)
@@ -179,12 +174,6 @@ class AntibotChecker extends Component
     public $enableHumanLog = true;
 
     /**
-     * @var bool Включить/выключить логирование всех не-ботовых посещений.
-     * Если true, все запросы, не идентифицированные как боты, будут логироваться со статусом 'non_suspicious'.
-     */
-    public $enableAllTrafficLog = false;
-
-    /**
      * @var bool Включить/выключить проверку на подозрительные HTTP-заголовки.
      */
     public $enableHttpHeaderCheck = true;
@@ -199,12 +188,10 @@ class AntibotChecker extends Component
      * @var array Список обязательных HTTP-заголовков и их минимальная длина/ожидаемые значения.
      */
     public $requiredHttpHeaders = [
-        'Accept' => ['min_length' => 5], // Пример: "text/html"
-        'Accept-Language' => ['min_length' => 2], // Пример: "ru-RU,ru;q=0.9"
-        'Accept-Encoding' => ['min_length' => 4], // Пример: "gzip, deflate, br"
-        'Connection' => ['expected_value' => ['keep-alive', 'close']], // Пример: "keep-alive"
-        // Можно добавить другие заголовки, если вы ожидаете их наличие
-        // 'User-Agent' - уже проверяется отдельно
+        'Accept' => ['min_length' => 5],
+        'Accept-Language' => ['min_length' => 2],
+        'Accept-Encoding' => ['min_length' => 4],
+        // 'Connection' - этот заголовок может отсутствовать в некоторых запросах, поэтому он закомментирован
     ];
 
 
@@ -214,21 +201,19 @@ class AntibotChecker extends Component
     public function markAsHuman()
     {
         $session = Yii::$app->session;
-        // Убедитесь, что сессия открыта, прежде чем обращаться к ней
         if (!$session->isActive) {
             $session->open();
         }
-        $session['not-bot'] = time(); // Сохраняем метку времени для потенциальных будущих проверок срока действия
+        $session['not-bot'] = time();
 
         $cookie = new Cookie([
             'name' => 'is_human',
             'value' => 1,
-            'expire' => time() + 86400 * 30, // Кука на 30 дней (86400 секунд в дне)
-            'httpOnly' => true, // Важно для безопасности (предотвращает доступ через JS)
+            'expire' => time() + 86400 * 30,
+            'httpOnly' => true,
         ]);
         Yii::$app->response->cookies->add($cookie);
 
-        // Логируем действие пометки как человека, если enableHumanLog включен
         if ($this->enableHumanLog) {
             /** @var Request $request */
             $request = Yii::$app->request;
@@ -243,7 +228,6 @@ class AntibotChecker extends Component
     public function checkIfHuman(): bool
     {
         $session = Yii::$app->session;
-        // Убедитесь, что сессия открыта для проверки
         if (!$session->isActive) {
             $session->open();
         }
@@ -261,7 +245,6 @@ class AntibotChecker extends Component
             return false;
         }
         foreach ($this->goodBots as $bot) {
-            // Поиск подстроки без учета регистра
             if (stripos($agent, $bot) !== false) {
                 return true;
             }
@@ -276,35 +259,28 @@ class AntibotChecker extends Component
      */
     protected function getRealClientIp()
     {
-        // Порядок заголовков здесь важен!
         if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
             $ip = $_SERVER['HTTP_CLIENT_IP'];
         } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            // X-Forwarded-For может содержать несколько IP через запятую (клиент, прокси1, прокси2)
-            // Нам нужен первый (самый левый)
             $ip = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
-        } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) { // Часто используется Nginx
+        } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
             $ip = $_SERVER['HTTP_X_REAL_IP'];
-        } elseif (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) { // Для Cloudflare
+        } elseif (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
             $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
         } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
             $ip = $_SERVER['REMOTE_ADDR'];
         } else {
-            $ip = 'UNKNOWN'; // Если IP не найден
+            $ip = 'UNKNOWN';
         }
-
-        // ВНИМАНИЕ: Вручную реализованная проверка доверенных прокси здесь не выполняется.
-        // Если вы используете эту функцию, убедитесь, что ваш прокси-сервер надежен
-        // и не позволяет подделывать заголовки IP.
 
         return $ip;
     }
 
     /**
      * Проверяет HTTP-заголовки запроса на подозрительность.
-     * @return bool True, если заголовки подозрительны, false в противном случае.
+     * @return string|false Имя подозрительного заголовка и его значение, если найден, иначе false.
      */
-    protected function checkHttpHeaders(): bool
+    protected function checkHttpHeaders(): string|false
     {
         /** @var Request $request */
         $request = Yii::$app->request;
@@ -312,24 +288,21 @@ class AntibotChecker extends Component
         foreach ($this->requiredHttpHeaders as $headerName => $rules) {
             $headerValue = $request->headers->get($headerName);
 
-            // Проверяем наличие заголовка
             if (empty($headerValue)) {
-                return true; // Заголовок отсутствует
+                return $headerName . ' (отсутствует, значение: "' . $headerValue . '")';
             }
 
-            // Проверяем минимальную длину, если указано
             if (isset($rules['min_length']) && strlen($headerValue) < $rules['min_length']) {
-                return true; // Заголовок слишком короткий
+                return $headerName . ' (короткий: ' . strlen($headerValue) . ', значение: "' . $headerValue . '")';
             }
 
-            // Проверяем ожидаемые значения, если указано (для заголовков типа Connection)
             if (isset($rules['expected_value'])) {
                 if (is_array($rules['expected_value'])) {
                     if (!in_array(strtolower($headerValue), array_map('strtolower', $rules['expected_value']))) {
-                        return true; // Значение не соответствует ожидаемым
+                        return $headerName . ' (неожиданное значение: "' . $headerValue . '")';
                     }
                 } elseif (strtolower($headerValue) !== strtolower($rules['expected_value'])) {
-                    return true; // Значение не соответствует ожидаемому
+                    return $headerName . ' (неожиданное значение: "' . $headerValue . '")';
                 }
             }
         }
@@ -358,24 +331,25 @@ class AntibotChecker extends Component
         }
 
         // 2. Проверка HTTP-заголовков на подозрительность
-        if ($this->enableHttpHeaderCheck && $this->checkHttpHeaders()) {
-            $this->saveAntibotLog($userAgent, $referer, 'suspicious_headers');
+        $suspiciousHeaderInfo = false;
+        if ($this->enableHttpHeaderCheck) {
+            $suspiciousHeaderInfo = $this->checkHttpHeaders();
+        }
+
+        if ($suspiciousHeaderInfo !== false) {
+            $this->saveAntibotLog($userAgent, $referer, 'suspicious_headers: ' . $suspiciousHeaderInfo);
             return true;
         }
 
         // 3. Более строгая проверка User-Agent (пустой или очень короткий UA)
-        // Эта проверка срабатывает, если good_bot не сработал.
-        // Проверка осуществляется ТОЛЬКО если enableEmptyUaCheck установлен в true
         if ($this->enableEmptyUaCheck && (empty($userAgent) || strlen($userAgent) < 10)) {
             $this->saveAntibotLog($userAgent, $referer, 'empty_or_short_ua');
             return true;
         }
 
         // 4. Проверка Referer
-        // Проверка осуществляется ТОЛЬКО если enableRefererCheck установлен в true
         if ($this->enableRefererCheck) {
             if (empty($referer)) {
-                // Логируем со статусом 'empty_referer', передавая фактический реферер как пустую строку
                 $this->saveAntibotLog($userAgent, '', 'empty_referer');
                 return true;
             } else {
@@ -383,17 +357,13 @@ class AntibotChecker extends Component
                 $currentHost = Yii::$app->request->hostName;
 
                 $isSafeReferer = false;
-                // Проверяем, является ли хост реферера одним из явно безопасных доменов
                 foreach ($this->safeRefererDomains as $domain) {
-                    // Используем str_contains для простой проверки подстроки
-                    // (например, 'google.com' в 'www.google.com')
                     if (str_contains($refererHost, $domain)) {
                         $isSafeReferer = true;
                         break;
                     }
                 }
 
-                // Если реферер не с текущего хоста и не с безопасного домена
                 if ($refererHost !== $currentHost && !$isSafeReferer) {
                     $this->saveAntibotLog($userAgent, $referer, 'suspicious_referer');
                     return true;
@@ -402,20 +372,16 @@ class AntibotChecker extends Component
         }
 
         // 5. Ограничение частоты запросов на основе IP
-        // Проверка осуществляется ТОЛЬКО если enableRateLimit установлен в true
         if ($this->enableRateLimit) {
-            // Теперь используем нашу кастомную функцию для получения IP клиента
             $ip = $this->getRealClientIp();
-            $cache = Yii::$app->cache; // Предполагается, что компонент 'cache' настроен
+            $cache = Yii::$app->cache;
 
-            $key = 'antibot_rate_limit_' . $ip; // Уникальный ключ кэша для IP
+            $key = 'antibot_rate_limit_' . $ip;
             $requestCount = $cache->get($key);
 
             if ($requestCount === false) {
-                // Первый запрос в окне
                 $cache->set($key, 1, $this->timeWindow);
             } else {
-                // Увеличиваем счетчик и обновляем кэш
                 $requestCount++;
                 $cache->set($key, $requestCount, $this->timeWindow);
             }
@@ -426,11 +392,6 @@ class AntibotChecker extends Component
             }
         }
 
-        // Если все проверки пройдены, запрос не определяется как бот по этим правилам
-        // Логируем как "неподозрительное" посещение, если опция включена
-        if ($this->enableAllTrafficLog) {
-            $this->saveAntibotLog($userAgent, $referer, 'non_suspicious');
-        }
         return false;
     }
 
@@ -443,25 +404,14 @@ class AntibotChecker extends Component
      */
     protected function saveAntibotLog($agent, $referer, $status)
     {
-        // ВАЖНО: Убедитесь, что ваша модель Antibot правильно настроена и доступна.
-        // Если она находится в другом пространстве имен или модуле, скорректируйте оператор 'use'
-        // и инициализацию (например, new \common\models\Antibot();).
-        // Если вы видите ошибку класса, проверьте путь к вашей модели `Antibot`.
+        $ip = $this->getRealClientIp();
 
-        // Пример: Использование модели из `backend\models`
-        // Добавьте `use backend\models\Antibot;` в начале файла,
-        // если эта модель доступна в этом пространстве имен.
-
-        $ip = $this->getRealClientIp(); // Используем кастомную функцию для получения IP
-
-        // Проверяем, существует ли класс модели, чтобы предотвратить фатальные ошибки,
-        // если модель не настроена или путь к ней неверен.
-        if (class_exists('backend\models\Antibot')) { // Измените на ваше реальное пространство имен, если оно другое
-            $model = new \backend\models\Antibot(); // Измените на ваше реальное пространство имен
+        if (class_exists('backend\models\Antibot')) {
+            $model = new \backend\models\Antibot();
             $model->date = time();
             $model->referer = $referer;
             $model->agent = $agent;
-            $model->ip = $ip; // Используем IP из кастомной функции
+            $model->ip = $ip;
             $model->page = Yii::$app->request->url;
             $model->status = $status;
 
@@ -469,7 +419,6 @@ class AntibotChecker extends Component
                 Yii::error('Failed to save antibot log: ' . json_encode($model->getErrors()), __METHOD__);
             }
         } else {
-            // Если модель Antibot не найдена, логируем ошибку через Yii::error
             Yii::error("Antibot model (backend\\models\\Antibot) not found for logging. Please check the namespace or model availability. Log data: Type={$status}, IP=" . $ip . ", UA={$agent}, Ref={$referer}, URL=" . Yii::$app->request->url, __METHOD__);
         }
     }

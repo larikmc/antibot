@@ -56,7 +56,6 @@ composer require larikmc/antibot
         // 'enableHttpHeaderCheck' => false, // Отключить проверку заголовков браузера (по умолчанию true)
         // 'enableGoodBotLog' => false, // Отключить логирование "Хороших" ботов (по умолчанию true)
         // 'enableHumanLog' => false, // Отключить логирование "человека" (по умолчанию true)
-        // 'enableAllTrafficLog' => true, // Включить логирование всех посещений (по умолчанию false)
     ],
 
     // ... остальные компоненты ...
