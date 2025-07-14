@@ -346,8 +346,8 @@ class AntibotChecker extends Component
     {
         $ip = $this->getRealClientIp();
 
-        if (class_exists('backend\models\Antibot')) {
-            $model = new \backend\models\Antibot();
+        if (class_exists('larikmc\Antibot\models\Antibot')) {
+            $model = new \larikmc\Antibot\models\Antibot();
             $model->date = time();
             $model->referer = $referer;
             $model->agent = $agent;
