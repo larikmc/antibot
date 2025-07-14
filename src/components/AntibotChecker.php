@@ -189,6 +189,12 @@ class AntibotChecker extends Component
     public $enableHttpHeaderCheck = true;
 
     /**
+     * @var bool Включить/выключить логирование "хороших" ботов.
+     * Если true, боты из списка goodBots будут логироваться со статусом 'good_bot'.
+     */
+    public $enableGoodBotLog = true;
+
+    /**
      * @var array Список обязательных HTTP-заголовков и их минимальная длина/ожидаемые значения.
      */
     public $requiredHttpHeaders = [
@@ -344,7 +350,9 @@ class AntibotChecker extends Component
 
         // 1. Проверка User-Agent: если это известный хороший бот, пропускаем сразу
         if ($this->isGoodBot($userAgent)) {
-            $this->saveAntibotLog($userAgent, $referer, 'good_bot');
+            if ($this->enableGoodBotLog) {
+                $this->saveAntibotLog($userAgent, $referer, 'good_bot');
+            }
             return false; // Не бот, он легитимен
         }
 
