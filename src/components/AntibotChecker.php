@@ -100,6 +100,7 @@ class AntibotChecker extends Component
         // Поисковые системы и их региональные версии
         'google.com',            // Google (основной)
         'yandex.ru',             // Яндекс (Россия)
+        'ya.ru',                 // Яндекс (Россия)
         'yandex.kz',             // Яндекс (Казахстан)
         'yandex.ua',             // Яндекс (Украина)
         'yandex.by',             // Яндекс (Беларусь)
