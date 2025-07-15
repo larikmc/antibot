@@ -11,7 +11,6 @@
     * [1. Настройка компонента `antibotChecker`](#1-настройка-компонента-antibotchecker)
     * [2. Настройка модуля `antibot` (для просмотра логов в админ-панели)](#2-настройка-модуля-antibot-для-просмотра-логов-в-админ-панели)
     * [3. Применение поведения `AntibotBehavior` к контроллерам](#3-применение-поведения-antibotbehavior-к-контроллерам)
-    * [4. Создание страницы верификации](#4-создание-страницы-верификации)
 * [Использование](#использование)
     * [Просмотр логов](#просмотр-логов)
 * [Настройки `AntibotChecker`](#настройки-antibotchecker)
@@ -38,7 +37,7 @@
 
 ## Установка
 
-Предпочтительный способ установки этого расширения — через [Composer](https://getcomposer.org/download/).
+Предпочтительный способ установки этого расширения — через [Composer](https://getcomposer.com/download/).
 
 Выполните команду:
 
@@ -163,77 +162,6 @@ php yii migrate --migrationPath=@larikmc/Antibot/migrations
     }
     ```
 
-### 4. Создание страницы верификации
-
-Вам понадобится создать представление для страницы верификации, на которую будут перенаправляться боты.
-
-1. Убедитесь, что контроллер `larikmc/Antibot/controllers/AntibotController.php` содержит действие `actionVerify()`.
-2. Создайте файл представления `larikmc/Antibot/views/antibot/verify.php` со следующим содержимым:
-
-    ```php
-    <?php
-    use yii\helpers\Html;
-    use yii\helpers\Url;
-
-    /** @var yii\web\View $this */
-
-    $this->title = 'Подтвердите, что вы не робот';
-    ?>
-    <div class="antibot-verify">
-        <h1><?= Html::encode($this->title) ?></h1>
-
-        <p>
-            Пожалуйста, подтвердите, что вы не робот, чтобы продолжить использование сайта.
-        </p>
-
-        <?= Html::beginForm(['/' . Yii::$app->controller->module->id . '/' . Yii::$app->controller->id . '/verify'], 'post', ['id' => 'antibot-form']) ?>
-            <?= Html::hiddenInput('not_bot_button', 1) ?>
-            <?= Html::submitButton('Я не робот', ['class' => 'btn btn-primary']) ?>
-        <?= Html::endForm() ?>
-
-        <script>
-            document.getElementById('antibot-form').addEventListener('submit', function(event) {
-                event.preventDefault(); // Предотвращаем стандартную отправку формы
-
-                const form = event.target;
-                const formData = new FormData(form);
-
-                // Получаем CSRF-токен для frontend-приложения Yii2
-                const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
-                if (csrfTokenMeta && csrfTokenMeta.content) {
-                    // Имя поля CSRF-токена может отличаться в зависимости от вашей конфигурации CSRF.
-                    // По умолчанию для frontend это _csrf-frontend, для backend - _csrf-backend.
-                    // Убедитесь, что это соответствует вашему приложению.
-                    formData.append('_csrf-frontend', csrfTokenMeta.content);
-                }
-
-                fetch(form.action, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        // Обработка HTTP ошибок (например, 404, 500)
-                        return response.text().then(text => { throw new Error(text || response.statusText); });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.status === 'success' && data.redirect_url) {
-                        window.location.href = data.redirect_url; // Перенаправляем пользователя
-                    } else {
-                        alert('Ошибка верификации: ' + (data.message || 'Неизвестная ошибка.'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Произошла ошибка сети или сервера: ' + error.message);
-                });
-            });
-        </script>
-    </div>
-    ```
-
 ## Использование
 
 После настройки, расширение будет автоматически проверять входящие запросы согласно вашим правилам.
@@ -293,4 +221,4 @@ CREATE TABLE `antibot` (
 
 ## Лицензия
 
-Этот проект лицензируется под лицензией MIT. Подробности см. в файле [LICENSE.md](https://github.com/larikmc/yii2-antibot/blob/main/LICENSE.m
+Этот проект лицензируется под лицензией MIT. Подробности см. в файле [LICENSE.md](https://github.com/larikmc/yii2-antibot/blob/main/LICENSE.md).
