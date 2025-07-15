@@ -26,6 +26,27 @@ class AntibotBehavior extends Behavior
     public $excludedRoutes = [];
 
     /**
+     * @var array Список расширений файлов, которые следует игнорировать при проверке на бота.
+     * Это полезно для статических файлов (CSS, JS, изображения), которые могут вызывать 404 ошибки.
+     */
+    public $excludedFileExtensions = [
+        'css', 'js', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico',
+        'woff', 'woff2', 'ttf', 'eot', 'map', 'json', 'txt', 'xml', 'html', // Добавлены распространенные типы
+    ];
+
+    /**
+     * @inheritdoc
+     */
+    public function init()
+    {
+        parent::init();
+        // Убедимся, что 'site/error' всегда исключен по умолчанию
+        if (!in_array('site/error', $this->excludedRoutes)) {
+            $this->excludedRoutes[] = 'site/error';
+        }
+    }
+
+    /**
      * @inheritdoc
      */
     public function events()
@@ -71,7 +92,19 @@ class AntibotBehavior extends Behavior
             // чтобы проверка не срабатывала на самой странице верификации.
             // Adds this specific route to the excluded routes list,
             // so the check does not trigger on the verification page itself.
-            $this->excludedRoutes[] = $moduleVerifyRoute;
+            if (!in_array($moduleVerifyRoute, $this->excludedRoutes)) {
+                $this->excludedRoutes[] = $moduleVerifyRoute;
+            }
+        }
+
+        // Получаем путь запроса (например, 'css/print.css')
+        $requestPath = Yii::$app->request->pathInfo;
+        $pathParts = pathinfo($requestPath);
+
+        // Если у пути есть расширение и оно находится в списке исключенных расширений,
+        // то пропускаем проверку на бота. Это предотвращает логирование 404 для статики.
+        if (isset($pathParts['extension']) && in_array(strtolower($pathParts['extension']), $this->excludedFileExtensions)) {
+            return $event->isValid = true;
         }
 
         // Проверяем, если текущий маршрут находится в списке исключенных
