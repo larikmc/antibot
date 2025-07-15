@@ -69,10 +69,10 @@ $this->params['breadcrumbs'][] = $this->title;
                     $ar = [
                         'empty_referer' => '<span class="badge bg-danger">пустой реферер</span>',
                         'empty_or_short_ua' => '<span class="badge bg-danger">короткий user-agent</span>', // ИЗМЕНЕНО: Исправлена опечатка
-                        'suspicious_referer' => '<span class="badge bg-warning text-dark">подозрительный реферер</span>',
+                        'suspicious_referer' => '<span class="badge bg-danger">подозрительный реферер</span>',
                         'good_bot' => '<span class="badge bg-success">good_bot</span>',
                         'human_identified' => '<span class="badge bg-success">обнаружен человек</span>',
-                        'non_suspicious' => '<span class="badge bg-success">не бот</span>',
+                        'non_suspicious' => '<span class="badge bg-warning text-dark">не бот</span>',
                         'rate_limit_exceeded' => '<span class="badge bg-danger">много запросов</span>',
                     ];
 
