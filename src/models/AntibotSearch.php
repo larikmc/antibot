@@ -18,7 +18,7 @@ class AntibotSearch extends Antibot // Наследуемся от Antibot из 
     {
         return [
             [['id', 'date'], 'integer'],
-            [['ip', 'referer', 'http', 'agent', 'page', 'status'], 'safe'],
+            [['ip', 'referer', 'os', 'agent', 'page', 'status'], 'safe'],
         ];
     }
 
@@ -72,7 +72,7 @@ class AntibotSearch extends Antibot // Наследуемся от Antibot из 
 
         $query->andFilterWhere(['like', 'ip', $this->ip])
             ->andFilterWhere(['like', 'referer', $this->referer])
-            ->andFilterWhere(['like', 'http', $this->http])
+            ->andFilterWhere(['like', 'os', $this->os])
             ->andFilterWhere(['like', 'agent', $this->agent])
             ->andFilterWhere(['like', 'page', $this->page])
             ->andFilterWhere(['like', 'status', $this->status]);

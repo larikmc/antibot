@@ -6,6 +6,7 @@ use Yii;
 use yii\base\Component;
 use yii\web\Cookie;
 use yii\web\Request;
+use larikmc\Antibot\models\Antibot; // Добавлено для явного импорта модели Antibot
 
 /**
  * AntibotChecker - Компонент для обнаружения и логирования подозрительных запросов.
@@ -63,30 +64,9 @@ class AntibotChecker extends Component
         'Applebot',              // Краулер Apple (Siri, Spotlight)
         'Bytespider',            // Краулер ByteDance (TikTok)
         'Sogou web spider',      // Краулер Sogou
-        'PetalBot',              // Краулер Huawei (Petal Search)
+        'PetalBot',              // Краулер Huawei (F-Search)
         'bingbot',               // Краулер Bing
         'Mail.RU_Bot',           // Краулер Mail.ru
-
-        // SEO & Monitoring Tools
-        // 'AhrefsBot',             // Краулер Ahrefs
-        // 'SemrushBot',            // Краулер Semrush
-        // 'MJ12bot',               // Краулер Majestic
-        // 'DotBot',                // Краулер Moz
-        // 'Crawlster',             // Краулер для сбора данных
-        // 'MegaIndex',             // Краулер MegaIndex
-        // 'Screaming Frog SEO Spider',// Инструмент Screaming Frog
-        // 'UptimeRobot',           // Сервис мониторинга доступности
-        // 'PingdomBot',            // Сервис мониторинга производительности
-        // 'StatusCake',            // Сервис мониторинга доступности
-        // 'NewRelicPinger',        // Агент New Relic для мониторинга
-        // 'Datadog/Synthetics',    // Агент Datadog для синтетических проверок
-        // 'Site24x7',              // Сервис мониторинга Site24x7
-        // 'ContentKing',           // Сервис аудита контента и SEO
-        // 'NetcraftSurveyAgent',   // Агент Netcraft для сбора данных о веб-серверах
-        // 'CensysBot',             // Краулер Censys для исследования безопасности
-        // 'ZoominfoBot',           // Краулер ZoomInfo для бизнес-данных
-        // 'Cliqzbot',              // Краулер Cliqz
-        // 'MauiBot',               // Краулер для сбора данных/аналитики
     ];
 
     /**
@@ -108,6 +88,7 @@ class AntibotChecker extends Component
         'ecosia.org',            // Ecosia
         'startpage.com',         // Startpage (ориентирован на конфиденциальность)
         'brave.com',             // Brave Search
+        'ya.ru',                 // Яндекс (главная страница)
 
         // Социальные сети и мессенджеры
         'facebook.com',          // Facebook
@@ -174,6 +155,12 @@ class AntibotChecker extends Component
     public $enableHumanLog = true;
 
     /**
+     * @var bool Включить/выключить логирование всех не-ботовых посещений.
+     * Если true, все запросы, не идентифицированные как боты, будут логироваться со статусом 'non_suspicious'.
+     */
+    public $enableAllTrafficLog = false;
+
+    /**
      * @var bool Включить/выключить логирование "хороших" ботов.
      * Если true, боты из списка goodBots будут логироваться со статусом 'good_bot'.
      */
@@ -186,19 +173,21 @@ class AntibotChecker extends Component
     public function markAsHuman()
     {
         $session = Yii::$app->session;
+        // Убедитесь, что сессия открыта, прежде чем обращаться к ней
         if (!$session->isActive) {
             $session->open();
         }
-        $session['not-bot'] = time();
+        $session['not-bot'] = time(); // Сохраняем метку времени для потенциальных будущих проверок срока действия
 
         $cookie = new Cookie([
             'name' => 'is_human',
             'value' => 1,
-            'expire' => time() + 86400 * 30,
-            'httpOnly' => true,
+            'expire' => time() + 86400 * 30, // Кука на 30 дней (86400 секунд в дне)
+            'httpOnly' => true, // Важно для безопасности (предотвращает доступ через JS)
         ]);
         Yii::$app->response->cookies->add($cookie);
 
+        // Логируем действие пометки как человека, если enableHumanLog включен
         if ($this->enableHumanLog) {
             /** @var Request $request */
             $request = Yii::$app->request;
@@ -213,6 +202,7 @@ class AntibotChecker extends Component
     public function checkIfHuman(): bool
     {
         $session = Yii::$app->session;
+        // Убедитесь, что сессия открыта для проверки
         if (!$session->isActive) {
             $session->open();
         }
@@ -230,6 +220,7 @@ class AntibotChecker extends Component
             return false;
         }
         foreach ($this->goodBots as $bot) {
+            // Поиск подстроки без учета регистра
             if (stripos($agent, $bot) !== false) {
                 return true;
             }
@@ -244,21 +235,94 @@ class AntibotChecker extends Component
      */
     protected function getRealClientIp()
     {
+        // Порядок заголовков здесь важен!
         if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
             $ip = $_SERVER['HTTP_CLIENT_IP'];
         } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            // X-Forwarded-For может содержать несколько IP через запятую (клиент, прокси1, прокси2)
+            // Нам нужен первый (самый левый)
             $ip = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
-        } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+        } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) { // Часто используется Nginx
             $ip = $_SERVER['HTTP_X_REAL_IP'];
-        } elseif (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+        } elseif (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) { // Для Cloudflare
             $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
         } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
             $ip = $_SERVER['REMOTE_ADDR'];
         } else {
-            $ip = 'UNKNOWN';
+            $ip = 'UNKNOWN'; // Если IP не найден
         }
 
+        // ВНИМАНИЕ: Вручную реализованная проверка доверенных прокси здесь не выполняется.
+        // Если вы используете эту функцию, убедитесь, что ваш прокси-сервер надежен
+        // и не позволяет подделывать заголовки IP.
+
         return $ip;
+    }
+
+    /**
+     * Определяет операционную систему посетителя на основе User-Agent.
+     * @return string Название операционной системы.
+     */
+    private function getOsFromUserAgent(): string
+    {
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+
+        if (strpos($userAgent, 'Windows NT 10.0') !== false) {
+            return 'Windows 10/11';
+        }
+        if (strpos($userAgent, 'Windows NT 6.3') !== false) {
+            return 'Windows 8.1';
+        }
+        if (strpos($userAgent, 'Windows NT 6.2') !== false) {
+            return 'Windows 8';
+        }
+        if (strpos($userAgent, 'Windows NT 6.1') !== false) {
+            return 'Windows 7';
+        }
+        if (strpos($userAgent, 'Windows NT 6.0') !== false) {
+            return 'Windows Vista';
+        }
+        if (strpos($userAgent, 'Windows NT 5.1') !== false || strpos($userAgent, 'Windows XP') !== false) {
+            return 'Windows XP';
+        }
+        if (strpos($userAgent, 'Windows NT 5.0') !== false || strpos($userAgent, 'Windows 2000') !== false) {
+            return 'Windows 2000';
+        }
+        if (strpos($userAgent, 'Macintosh') !== false || strpos($userAgent, 'Mac OS X') !== false) {
+            return 'macOS / OS X';
+        }
+        if (strpos($userAgent, 'Android') !== false) {
+            return 'Android';
+        }
+        if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+            return 'iOS';
+        }
+        if (strpos($userAgent, 'Linux') !== false) {
+            return 'Linux';
+        }
+        if (strpos($userAgent, 'CrOS') !== false) {
+            return 'Chrome OS';
+        }
+        if (strpos($userAgent, 'BlackBerry') !== false) {
+            return 'BlackBerry';
+        }
+        if (strpos($userAgent, 'Opera Mini') !== false) {
+            return 'Opera Mini (Mobile)';
+        }
+        if (strpos($userAgent, 'webOS') !== false) {
+            return 'webOS';
+        }
+        if (strpos($userAgent, 'FreeBSD') !== false) {
+            return 'FreeBSD';
+        }
+        if (strpos($userAgent, 'OpenBSD') !== false) {
+            return 'OpenBSD';
+        }
+        if (strpos($userAgent, 'NetBSD') !== false) {
+            return 'NetBSD';
+        }
+
+        return 'Unknown OS';
     }
 
 
@@ -275,21 +339,26 @@ class AntibotChecker extends Component
 
         // 1. Проверка User-Agent: если это известный хороший бот, пропускаем сразу
         if ($this->isGoodBot($userAgent)) {
-            if ($this->enableGoodBotLog) {
+            // Проверяем, включено ли логирование хороших ботов перед сохранением лога.
+            if (isset($this->enableGoodBotLog) && $this->enableGoodBotLog) {
                 $this->saveAntibotLog($userAgent, $referer, 'good_bot');
             }
             return false; // Не бот, он легитимен
         }
 
         // 2. Более строгая проверка User-Agent (пустой или очень короткий UA)
+        // Эта проверка срабатывает, если good_bot не сработал.
+        // Проверка осуществляется ТОЛЬКО если enableEmptyUaCheck установлен в true
         if ($this->enableEmptyUaCheck && (empty($userAgent) || strlen($userAgent) < 10)) {
             $this->saveAntibotLog($userAgent, $referer, 'empty_or_short_ua');
             return true;
         }
 
         // 3. Проверка Referer
+        // Проверка осуществляется ТОЛЬКО если enableRefererCheck установлен в true
         if ($this->enableRefererCheck) {
             if (empty($referer)) {
+                // Логируем со статусом 'empty_referer', передавая фактический реферер как пустую строку
                 $this->saveAntibotLog($userAgent, '', 'empty_referer');
                 return true;
             } else {
@@ -297,13 +366,17 @@ class AntibotChecker extends Component
                 $currentHost = Yii::$app->request->hostName;
 
                 $isSafeReferer = false;
+                // Проверяем, является ли хост реферера одним из явно безопасных доменов
                 foreach ($this->safeRefererDomains as $domain) {
+                    // Используем str_contains для простой проверки подстроки
+                    // (например, 'google.com' в 'www.google.com')
                     if (str_contains($refererHost, $domain)) {
                         $isSafeReferer = true;
                         break;
                     }
                 }
 
+                // Если реферер не с текущего хоста и не с безопасного домена
                 if ($refererHost !== $currentHost && !$isSafeReferer) {
                     $this->saveAntibotLog($userAgent, $referer, 'suspicious_referer');
                     return true;
@@ -312,16 +385,20 @@ class AntibotChecker extends Component
         }
 
         // 4. Ограничение частоты запросов на основе IP
+        // Проверка осуществляется ТОЛЬКО если enableRateLimit установлен в true
         if ($this->enableRateLimit) {
+            // Теперь используем нашу кастомную функцию для получения IP клиента
             $ip = $this->getRealClientIp();
-            $cache = Yii::$app->cache;
+            $cache = Yii::$app->cache; // Предполагается, что компонент 'cache' настроен
 
-            $key = 'antibot_rate_limit_' . $ip;
+            $key = 'antibot_rate_limit_' . $ip; // Уникальный ключ кэша для IP
             $requestCount = $cache->get($key);
 
             if ($requestCount === false) {
+                // Первый запрос в окне
                 $cache->set($key, 1, $this->timeWindow);
             } else {
+                // Увеличиваем счетчик и обновляем кэш
                 $requestCount++;
                 $cache->set($key, $requestCount, $this->timeWindow);
             }
@@ -332,6 +409,11 @@ class AntibotChecker extends Component
             }
         }
 
+        // Если все проверки пройдены, запрос не определяется как бот по этим правилам
+        // Логируем как "неподозрительное" посещение, если опция включена
+        if (isset($this->enableAllTrafficLog) && $this->enableAllTrafficLog) { // Проверка на существование свойства
+            $this->saveAntibotLog($userAgent, $referer, 'non_suspicious');
+        }
         return false;
     }
 
@@ -340,26 +422,30 @@ class AntibotChecker extends Component
      *
      * @param string $agent User-Agent запроса.
      * @param string|null $referer Реферер запроса.
-     * @param string $status Статус события (например, 'good_bot', 'rate_limit_exceeded', 'empty_referer', 'human_identified').
+     * @param string $status Статус события (например, 'good_bot', 'rate_limit_exceeded', 'empty_referer', 'human_identified', 'non_suspicious').
      */
     protected function saveAntibotLog($agent, $referer, $status)
     {
         $ip = $this->getRealClientIp();
+        $os = $this->getOsFromUserAgent(); // Получаем ОС посетителя
 
-        if (class_exists('larikmc\Antibot\models\Antibot')) {
-            $model = new \larikmc\Antibot\models\Antibot();
+        // Используем класс Antibot из пространства имен модуля
+        if (class_exists(Antibot::class)) {
+            $model = new Antibot();
             $model->date = time();
             $model->referer = $referer;
             $model->agent = $agent;
             $model->ip = $ip;
             $model->page = Yii::$app->request->url;
             $model->status = $status;
+            $model->os = $os; // Сохраняем ОС
 
             if (!$model->save()) {
                 Yii::error('Failed to save antibot log: ' . json_encode($model->getErrors()), __METHOD__);
             }
         } else {
-            Yii::error("Antibot model (backend\\models\\Antibot) not found for logging. Please check the namespace or model availability. Log data: Type={$status}, IP=" . $ip . ", UA={$agent}, Ref={$referer}, URL=" . Yii::$app->request->url, __METHOD__);
+            // Если модель Antibot не найдена, логируем ошибку через Yii::error
+            Yii::error("Antibot model (larikmc\\Antibot\\models\\Antibot) not found for logging. Please check the namespace or model availability. Log data: Type={$status}, IP=" . $ip . ", UA={$agent}, Ref={$referer}, URL=" . Yii::$app->request->url . ", OS={$os}", __METHOD__);
         }
     }
 }

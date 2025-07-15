@@ -3,6 +3,7 @@
 namespace larikmc\Antibot\models;
 
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "antibot".
@@ -11,19 +12,19 @@ use Yii;
  * @property int $date
  * @property string $ip
  * @property string|null $referer
- * @property string|null $http
+ * @property string|null $os
  * @property string|null $agent
  * @property string|null $page
  * @property string|null $status
  */
-class Antibot extends \yii\db\ActiveRecord
+class Antibot extends ActiveRecord
 {
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return 'antibot';
+        return 'antibot'; // Имя таблицы в базе данных
     }
 
     /**
@@ -35,7 +36,7 @@ class Antibot extends \yii\db\ActiveRecord
             [['date', 'ip'], 'required'],
             ['date', 'integer'],
             [['referer', 'agent', 'page'], 'string'],
-            [['ip', 'http', 'status'], 'string', 'max' => 255],
+            [['ip', 'os', 'status'], 'string', 'max' => 255],
         ];
     }
 
@@ -47,9 +48,9 @@ class Antibot extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'date' => 'Дата',
-            'ip' => 'Ip',
-            'referer' => 'Referer',
-            'http' => 'Http',
+            'ip' => 'IP',
+            'referer' => 'Реферер',
+            'os' => 'OS',
             'agent' => 'User Agent',
             'page' => 'Страница',
             'status' => 'Статус',
