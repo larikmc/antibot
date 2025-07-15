@@ -50,7 +50,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'options' => ['width' => '50'],
             ],
             'referer:ntext',
-            //'http', // Закомментировано, если не используется или не отображается
+            'os',
             'agent:ntext',
             'page:ntext',
             [
@@ -60,11 +60,9 @@ $this->params['breadcrumbs'][] = $this->title;
                     'empty_referer' => 'пустой реферер',
                     'empty_or_short_ua' => 'короткий user-agent', // ИЗМЕНЕНО: Исправлена опечатка
                     'suspicious_referer' => 'подозрительный реферер',
-                    'suspicious_headers' => 'подозрительные заголовки', // ДОБАВЛЕНО: Новый статус
                     'good_bot' => 'good_bot',
                     'human_identified' => 'обнаружен человек',
-                    // 'non_suspicious' => 'не бот', // УДАЛЕНО: Если логирование non_suspicious отключено
-                    // 'have session' => 'have session', // УДАЛЕНО: Если этот статус не используется
+                    'non_suspicious' => 'не бот',
                     'rate_limit_exceeded' => 'много запросов',
                 ],
                 'content' => function ($model) {
@@ -72,11 +70,9 @@ $this->params['breadcrumbs'][] = $this->title;
                         'empty_referer' => '<span class="badge bg-danger">пустой реферер</span>',
                         'empty_or_short_ua' => '<span class="badge bg-danger">короткий user-agent</span>', // ИЗМЕНЕНО: Исправлена опечатка
                         'suspicious_referer' => '<span class="badge bg-warning text-dark">подозрительный реферер</span>',
-                        'suspicious_headers' => '<span class="badge bg-danger">подозрительные заголовки</span>', // ДОБАВЛЕНО: Новый статус
                         'good_bot' => '<span class="badge bg-success">good_bot</span>',
                         'human_identified' => '<span class="badge bg-success">обнаружен человек</span>',
-                        // 'non_suspicious' => '<span class="badge bg-success">не бот</span>', // УДАЛЕНО: Если логирование non_suspicious отключено
-                        // 'have session' => '<span class="badge bg-success">have session</span>', // УДАЛЕНО: Если этот статус не используется
+                        'non_suspicious' => '<span class="badge bg-success">не бот</span>',
                         'rate_limit_exceeded' => '<span class="badge bg-danger">много запросов</span>',
                     ];
 
@@ -91,14 +87,13 @@ $this->params['breadcrumbs'][] = $this->title;
                 }
             ],
             [
-                'class' => ActionColumn::class, // ИЗМЕНЕНО: Использование ActionColumn::class
+                'class' => ActionColumn::class,
                 'urlCreator' => function ($action, $model, $key, $index, $column) {
-                    // ИЗМЕНЕНО: Маршруты теперь указывают на контроллер модуля
                     return Url::toRoute(['/antibot/log/' . $action, 'id' => $model->id]);
                 },
                 'header' => '',
                 'buttonOptions' => ['class' => 'btn btn-primary'],
-                'template' => '<div class="btn-group">{delete}</div>', // Оставлен только delete
+                'template' => '<div class="btn-group">{delete}</div>',
                 'options' => ['style' => 'width:50px'],
             ],
         ],
