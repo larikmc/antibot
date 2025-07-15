@@ -20,8 +20,10 @@ class AntibotBehavior extends Behavior
     public $checkerComponentId = 'antibotChecker';
 
     /**
-     * @var array Список маршрутов (controller-id/action-id), которые нужно исключить из проверки.
+     * @var array|callable Список маршрутов (controller-id/action-id), которые нужно исключить из проверки.
+     * Может быть массивом строк или callable-функцией, которая возвращает массив строк.
      * List of routes (controller-id/action-id) to be excluded from the check.
+     * Can be an array of strings or a callable that returns an array of strings.
      */
     public $excludedRoutes = [];
 
@@ -31,8 +33,39 @@ class AntibotBehavior extends Behavior
      */
     public $excludedFileExtensions = [
         'css', 'js', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico',
-        'woff', 'woff2', 'ttf', 'eot', 'map', 'json', 'txt', 'xml', 'html', // Добавлены распространенные типы
+        'woff', 'woff2', 'ttf', 'eot', 'map', 'json', 'txt', 'xml', 'html',
     ];
+
+    /**
+     * @var string Маршрут для перенаправления ботов на страницу верификации.
+     * По умолчанию: 'antibot/antibot/verify'.
+     */
+    public $verifyRoute = 'antibot/antibot/verify';
+
+    /**
+     * @var array Список действий контроллера, к которым применяется поведение.
+     * Если не задано, применяется ко всем действиям.
+     * Пример: ['index', 'view']
+     */
+    public $only = [];
+
+    /**
+     * @var array Список действий контроллера, из которых поведение исключается.
+     * Пример: ['create', 'update']
+     */
+    public $except = [];
+
+    /**
+     * @var bool Включить/выключить логирование запросов, которые были исключены из проверки.
+     * Это полезно для отладки.
+     */
+    public $logExcludedRequests = false;
+
+    /**
+     * @var int HTTP-статус код для перенаправления ботов.
+     * По умолчанию 302 (Found). Можно использовать 301 (Moved Permanently) или другие.
+     */
+    public $redirectStatusCode = 302;
 
     /**
      * @inheritdoc
@@ -40,10 +73,37 @@ class AntibotBehavior extends Behavior
     public function init()
     {
         parent::init();
-        // Убедимся, что 'site/error' всегда исключен по умолчанию
-        if (!in_array('site/error', $this->excludedRoutes)) {
-            $this->excludedRoutes[] = 'site/error';
+
+        // Определяем базовые маршруты, которые всегда должны быть исключены.
+        $alwaysExcludedRoutes = [
+            'site/error', // Страница ошибки 404
+        ];
+
+        // Получаем модуль 'antibot' для определения маршрута верификации.
+        $module = Yii::$app->getModule('antibot');
+        if ($module) {
+            // Формируем полный маршрут к действию верификации внутри модуля
+            // Предполагается, что actionVerify находится в AntibotController,
+            // а defaultRoute модуля указывает на этот контроллер.
+            // Используем свойство verifyRoute, чтобы оно могло быть переопределено.
+            $verifyRouteParts = explode('/', $this->verifyRoute);
+            if (count($verifyRouteParts) === 3) { // Проверяем формат 'module/controller/action'
+                $moduleVerifyRoute = $verifyRouteParts[0] . '/' . $verifyRouteParts[1] . '/' . $verifyRouteParts[2];
+            } else {
+                // Если verifyRoute задан некорректно, используем defaultRoute модуля
+                $moduleVerifyRoute = $module->id . '/' . $module->defaultRoute . '/verify';
+            }
+            $alwaysExcludedRoutes[] = $moduleVerifyRoute;
         }
+
+        // Если $excludedRoutes является callable, вызываем его для получения маршрутов.
+        $userExcludedRoutes = is_callable($this->excludedRoutes)
+            ? call_user_func($this->excludedRoutes)
+            : $this->excludedRoutes;
+
+        // Объединяем пользовательские исключенные маршруты с всегда исключенными,
+        // предотвращая дублирование.
+        $this->excludedRoutes = array_unique(array_merge($userExcludedRoutes, $alwaysExcludedRoutes));
     }
 
     /**
@@ -52,87 +112,90 @@ class AntibotBehavior extends Behavior
     public function events()
     {
         return [
-            // Прикрепляемся к событию Controller::EVENT_BEFORE_ACTION,
-            // чтобы выполнять проверку перед выполнением любого действия контроллера.
-            // Attaches to the Controller::EVENT_BEFORE_ACTION event
-            // to perform the check before any controller action is executed.
             Controller::EVENT_BEFORE_ACTION => 'checkBot',
         ];
     }
 
     /**
      * Метод, который будет вызываться перед каждым действием контроллера.
-     * This method will be called before each controller action.
      * @param \yii\base\ActionEvent $event Событие действия.
      * @return bool Возвращает true, если действие должно быть выполнено, false для его остановки.
-     * Returns true if the action should be executed, false to stop it.
      */
     public function checkBot($event)
     {
         /** @var Controller $controller */
-        $controller = $this->owner; // Получаем экземпляр контроллера, к которому прикреплен Behavior
+        $controller = $this->owner;
 
         /** @var AntibotChecker $checker */
-        // Получаем экземпляр компонента AntibotChecker из приложения
         $checker = Yii::$app->get($this->checkerComponentId);
 
-        // Получаем текущий уникальный ID маршрута (например, 'site/index', 'antibot/log/index')
-        // Gets the current unique route ID (e.g., 'site/index', 'antibot/log/index')
+        // Получаем текущий уникальный ID маршрута
         $currentRoute = $controller->uniqueId;
 
-        // Получаем модуль 'antibot'
-        // Gets the 'antibot' module
-        $module = Yii::$app->getModule('antibot');
-        if ($module) {
-            // Формируем полный маршрут к действию верификации внутри модуля
-            // Forms the full route to the verification action within the module
-            $moduleVerifyRoute = $module->id . '/' . $module->defaultRoute . '/verify';
-
-            // Добавляем этот конкретный маршрут в список исключенных маршрутов,
-            // чтобы проверка не срабатывала на самой странице верификации.
-            // Adds this specific route to the excluded routes list,
-            // so the check does not trigger on the verification page itself.
-            if (!in_array($moduleVerifyRoute, $this->excludedRoutes)) {
-                $this->excludedRoutes[] = $moduleVerifyRoute;
+        // --- Проверка на консольные запросы ---
+        if (Yii::$app->request->isConsoleRequest) {
+            if ($this->logExcludedRequests) {
+                Yii::info("AntibotBehavior: Request excluded (Console Request) - Route: {$currentRoute}", __METHOD__);
             }
+            return $event->isValid = true;
         }
 
-        // Получаем путь запроса (например, 'css/print.css')
+        // --- Проверка на AJAX-запросы ---
+        if (Yii::$app->request->isAjax) {
+            if ($this->logExcludedRequests) {
+                Yii::info("AntibotBehavior: Request excluded (AJAX Request) - Route: {$currentRoute}", __METHOD__);
+            }
+            return $event->isValid = true;
+        }
+
+        // --- Проверка на статические файлы по расширению ---
         $requestPath = Yii::$app->request->pathInfo;
         $pathParts = pathinfo($requestPath);
-
-        // Если у пути есть расширение и оно находится в списке исключенных расширений,
-        // то пропускаем проверку на бота. Это предотвращает логирование 404 для статики.
         if (isset($pathParts['extension']) && in_array(strtolower($pathParts['extension']), $this->excludedFileExtensions)) {
+            if ($this->logExcludedRequests) {
+                Yii::info("AntibotBehavior: Request excluded (Static File) - Path: {$requestPath}", __METHOD__);
+            }
+            return $event->isValid = true;
+        }
+
+        // Проверяем, применимо ли поведение к текущему действию контроллера (only/except)
+        $actionId = $controller->action->id;
+        if (!empty($this->only) && !in_array($actionId, $this->only)) {
+            if ($this->logExcludedRequests) {
+                Yii::info("AntibotBehavior: Request excluded (Not in 'only' list) - Action: {$actionId}", __METHOD__);
+            }
+            return $event->isValid = true;
+        }
+        if (!empty($this->except) && in_array($actionId, $this->except)) {
+            if ($this->logExcludedRequests) {
+                Yii::info("AntibotBehavior: Request excluded (In 'except' list) - Action: {$actionId}", __METHOD__);
+            }
             return $event->isValid = true;
         }
 
         // Проверяем, если текущий маршрут находится в списке исключенных
-        // Checks if the current route is in the excluded list
         if (in_array($currentRoute, $this->excludedRoutes)) {
-            return $event->isValid = true; // Не проверять исключенные маршруты, разрешаем выполнение действия
+            if ($this->logExcludedRequests) {
+                Yii::info("AntibotBehavior: Request excluded (Excluded Route) - Route: {$currentRoute}", __METHOD__);
+            }
+            return $event->isValid = true;
         }
 
         // Всегда вызываем checkIsBot, чтобы он мог решить, логировать ли трафик
         // (включая non_suspicious, если enableAllTrafficLog включен).
-        // Always call checkIsBot so it can decide whether to log traffic
-        // (including non_suspicious, if enableAllTrafficLog is enabled).
         $isBot = $checker->checkIsBot();
 
         // Если пользователь не является ботом ИЛИ он уже помечен как человек,
         // разрешаем выполнение действия.
-        // If the user is not a bot OR is already marked as human,
-        // allow the action to proceed.
         if (!$isBot || $checker->checkIfHuman()) {
             return $event->isValid = true;
         }
 
         // Если это бот (и не помечен как человек, иначе мы бы вышли выше),
         // перенаправляем на страницу верификации.
-        // If it's a bot (and not marked as human, otherwise we would have exited above),
-        // redirect to the verification page.
         Yii::$app->session->set('antibot_redirect_url', Yii::$app->request->url);
-        $controller->redirect(['/' . $module->id . '/' . $module->defaultRoute . '/verify'])->send();
+        // Используем настроенный verifyRoute и redirectStatusCode для перенаправления
+        $controller->redirect(['/' . $this->verifyRoute], $this->redirectStatusCode)->send();
         return $event->isValid = false; // Останавливаем выполнение текущего действия
     }
 }
