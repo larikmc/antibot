@@ -55,6 +55,8 @@ composer require larikmc/antibot
         // 'enableRefererCheck' => false, // Отключить проверку реферера (по умолчанию true)        
         // 'enableGoodBotLog' => false, // Отключить логирование "Хороших" ботов (по умолчанию true)
         // 'enableHumanLog' => false, // Отключить логирование "человека" (по умолчанию true)
+        // 'enableAllTrafficLog' => true, // Включить логирование всего трафика (по умолчанию false)
+
     ],
 
     // ... остальные компоненты ...

@@ -411,7 +411,7 @@ class AntibotChecker extends Component
 
         // Если все проверки пройдены, запрос не определяется как бот по этим правилам
         // Логируем как "неподозрительное" посещение, если опция включена
-        if (isset($this->enableAllTrafficLog) && $this->enableAllTrafficLog) { // Проверка на существование свойства
+        if (isset($this->enableAllTrafficLog) && $this->enableAllTrafficLog) {
             $this->saveAntibotLog($userAgent, $referer, 'non_suspicious');
         }
         return false;
